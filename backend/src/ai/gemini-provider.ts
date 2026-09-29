@@ -22,20 +22,34 @@ export class GeminiProvider implements AiProvider {
       .filter(message => message.role !== "system")
       .map(message => {
         if (message.role === "tool") {
-          let parsed: { name?: string; result?: unknown; error?: string };
-          try {
-            parsed = JSON.parse(message.content) as typeof parsed;
-          } catch {
-            parsed = { result: message.content };
-          }
+          const toolResult = message.toolResult;
           return {
             role: "user",
             parts: [{
               functionResponse: {
-                name: parsed.name ?? "unknown",
-                response: parsed.error ? { error: parsed.error } : { result: parsed.result ?? null }
+                name: toolResult?.name ?? "unknown",
+                response: toolResult?.error
+                  ? { error: toolResult.error }
+                  : { result: toolResult?.result ?? null }
               }
             }]
+          };
+        }
+
+        if (message.role === "assistant" && message.toolCalls?.length) {
+          return {
+            role: "model",
+            parts: [
+              ...(message.content ? [{ text: message.content }] : []),
+              ...message.toolCalls.map(call => ({
+                functionCall: {
+                  name: call.name,
+                  args: call.input && typeof call.input === "object"
+                    ? call.input as Record<string, unknown>
+                    : {}
+                }
+              }))
+            ]
           };
         }
 
@@ -45,14 +59,12 @@ export class GeminiProvider implements AiProvider {
         };
       });
 
-    const toolConfig = request.tools?.length
-      ? {
-          functionDeclarations: request.tools.map(tool => ({
-            name: tool.name,
-            description: tool.description,
-            parametersJsonSchema: tool.inputSchema
-          }))
-        }
+    const functionDeclarations = request.tools?.length
+      ? request.tools.map(tool => ({
+          name: tool.name,
+          description: tool.description,
+          parametersJsonSchema: tool.inputSchema
+        }))
       : undefined;
 
     const firstSystemMessage = request.messages.find(message => message.role === "system");
@@ -67,7 +79,7 @@ export class GeminiProvider implements AiProvider {
           systemInstruction: firstSystemMessage
             ? { parts: [{ text: firstSystemMessage.content }] }
             : undefined,
-          tools: toolConfig ? [{ functionDeclarations: toolConfig.functionDeclarations }] : undefined,
+          tools: functionDeclarations ? [{ functionDeclarations }] : undefined,
           generationConfig:
             request.temperature === undefined ? undefined : { temperature: request.temperature }
         })
