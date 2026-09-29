@@ -7,14 +7,17 @@ Phase 2 backend foundation for the Friday web-based AI agent, independent of n8n
 - PostgreSQL-backed task persistence and background worker execution.
 - Stale-task recovery for interrupted workers.
 - Gemini provider abstraction with function/tool calling.
-- Agent orchestration with bounded steps and safe built-in tools.
+- Agent orchestration with bounded steps.
+- Safe built-in status/echo tools.
 - Persistent conversations and messages.
 - Persistent long-term memory records with text search.
 - Database-backed task/agent execution events.
 - Server-Sent Events endpoint for live task progress.
 - User authentication with hashed passwords and revocable database sessions.
 - User ownership checks for conversations, memories, and tasks.
-- Explicit API and service boundaries so GitHub, files, browser, and code-execution tools can be added without replacing the core.
+- GitHub read tools for repositories, files, and code search.
+- GitHub mutation tools for branches, files, and pull requests, protected by an explicit feature flag.
+- Explicit API and service boundaries for future files, browser, code-execution, and deployment tools.
 
 ## Principles
 
@@ -23,6 +26,7 @@ Phase 2 backend foundation for the Friday web-based AI agent, independent of n8n
 - AI providers and tools are implemented behind explicit interfaces.
 - Runtime verification remains a separate step and must not be assumed from source-level checks.
 - Protected APIs require a Bearer session token.
+- GitHub mutations are disabled by default.
 
 ## Development
 
@@ -59,4 +63,16 @@ The API defaults to port 3001.
 - GET /api/tasks/:id
 - GET /api/tasks/:id/events — Server-Sent Events stream; supports ?after=<sequence>
 
-Authentication and ownership are now enforced at the API boundary. Runtime verification of registration, login, protected routes, database migrations, and agent execution remains pending until the local PC is available.
+### Agent GitHub tools
+
+The agent registry currently exposes:
+- github.list_repositories
+- github.get_file
+- github.search_code
+- github.create_branch
+- github.upsert_file
+- github.create_pull_request
+
+Set `GITHUB_TOKEN` for GitHub access. Set `FRIDAY_ALLOW_GITHUB_MUTATIONS=true` only when repository mutations are intentionally authorized. The mutation flag defaults to false.
+
+Runtime verification of registration, login, protected routes, migrations, agent execution, GitHub access, and worker behavior remains pending until the local PC is available.
