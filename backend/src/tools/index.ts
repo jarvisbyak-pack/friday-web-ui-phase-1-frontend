@@ -1,7 +1,4 @@
-import {
-  echoTool,
-  systemStatusTool
-} from "./builtins.js";
+import { echoTool, systemStatusTool } from "./builtins.js";
 import {
   githubCreateBranchTool,
   githubCreatePullRequestTool,
@@ -10,6 +7,7 @@ import {
   githubSearchCodeTool,
   githubUpsertFileTool
 } from "./github.js";
+import { fileListTool, fileReadTool } from "./files.js";
 import { ToolRegistry } from "./registry.js";
 
 export function createDefaultToolRegistry(): ToolRegistry {
@@ -22,5 +20,7 @@ export function createDefaultToolRegistry(): ToolRegistry {
   registry.register(githubCreateBranchTool);
   registry.register(githubUpsertFileTool);
   registry.register(githubCreatePullRequestTool);
+  registry.register(fileListTool);
+  registry.register(fileReadTool);
   return registry;
 }
