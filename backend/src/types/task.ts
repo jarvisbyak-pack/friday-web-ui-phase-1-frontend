@@ -16,6 +16,7 @@ export interface Task {
   state: TaskState;
   createdAt: string;
   updatedAt: string;
+  userId?: string;
   error?: string;
   result?: unknown;
 }
