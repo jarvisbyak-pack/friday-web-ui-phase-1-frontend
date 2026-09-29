@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { config } from "../config.js";
 import { pool } from "../db/pool.js";
@@ -83,7 +83,7 @@ export class FileService {
       );
       return toFile(rows[0]!);
     } catch (error) {
-      await import("node:fs/promises").then(fs => fs.rm(storagePath, { force: true }));
+      await rm(storagePath, { force: true });
       throw error;
     }
   }
