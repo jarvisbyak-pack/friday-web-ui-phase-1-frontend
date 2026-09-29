@@ -18,7 +18,7 @@ export function requireAuth(auth = new AuthService()) {
         res.status(401).json({ error: { code: "INVALID_SESSION", message: "Invalid or expired session." } });
         return;
       }
-      (req as AuthenticatedRequest).userId = user.id;
+      (req as unknown as AuthenticatedRequest).userId = user.id;
       next();
     } catch (error) {
       console.error("Authentication failed:", error);
