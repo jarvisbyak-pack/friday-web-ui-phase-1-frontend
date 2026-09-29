@@ -1,6 +1,7 @@
 import express, { type Request, type Response } from "express";
 import { z } from "zod";
 import { AiService } from "./ai/service.js";
+import { AgentService } from "./agent/service.js";
 import { PostgresTaskRepository } from "./tasks/task-repository.js";
 import { TaskService } from "./tasks/task-service.js";
 
@@ -24,6 +25,7 @@ export function createApi() {
   const app = express();
   const taskService = new TaskService(new PostgresTaskRepository());
   const aiService = new AiService();
+  const agentService = new AgentService();
 
   app.disable("x-powered-by");
   app.use(express.json({ limit: "2mb" }));
@@ -57,6 +59,29 @@ export function createApi() {
       console.error("AI generation failed:", error);
       res.status(502).json({
         error: { code: "AI_PROVIDER_ERROR", message: "AI provider request failed." }
+      });
+    }
+  });
+
+  app.post("/api/agent", async (req: Request, res: Response) => {
+    const parsed = chatRequestSchema.extend({
+      maxSteps: z.number().int().min(1).max(20).optional()
+    }).safeParse(req.body);
+
+    if (!parsed.success) {
+      res.status(400).json({
+        error: { code: "INVALID_REQUEST", message: "Invalid agent request.", details: parsed.error.flatten() }
+      });
+      return;
+    }
+
+    try {
+      const result = await agentService.run(parsed.data);
+      res.json({ result });
+    } catch (error) {
+      console.error("Agent execution failed:", error);
+      res.status(502).json({
+        error: { code: "AGENT_EXECUTION_ERROR", message: error instanceof Error ? error.message : "Agent execution failed." }
       });
     }
   });
