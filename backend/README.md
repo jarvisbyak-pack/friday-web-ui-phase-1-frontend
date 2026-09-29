@@ -17,6 +17,7 @@ Phase 2 backend foundation for the Friday web-based AI agent, independent of n8n
 - User ownership checks for conversations, memories, and tasks.
 - GitHub read tools for repositories, files, and code search.
 - GitHub mutation tools for branches, files, and pull requests, protected by an explicit feature flag.
+- Authenticated file storage with per-user ownership, size limits, checksums, and agent read/list tools.
 - Explicit API and service boundaries for future files, browser, code-execution, and deployment tools.
 
 ## Principles
@@ -59,6 +60,9 @@ The API defaults to port 3001.
 - POST /api/conversations/:id/messages
 - POST /api/memories
 - GET /api/memories?q=...
+- GET /api/files
+- POST /api/files
+- GET /api/files/:id
 - POST /api/tasks
 - GET /api/tasks/:id
 - GET /api/tasks/:id/events — Server-Sent Events stream; supports ?after=<sequence>
@@ -72,6 +76,8 @@ The agent registry currently exposes:
 - github.create_branch
 - github.upsert_file
 - github.create_pull_request
+- files.list
+- files.read
 
 Set `GITHUB_TOKEN` for GitHub access. Set `FRIDAY_ALLOW_GITHUB_MUTATIONS=true` only when repository mutations are intentionally authorized. The mutation flag defaults to false.
 
