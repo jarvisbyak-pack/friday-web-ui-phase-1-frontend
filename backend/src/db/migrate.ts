@@ -6,7 +6,8 @@ import { pool } from "./pool.js";
 const here = dirname(fileURLToPath(import.meta.url));
 const migrationFiles = [
   "001_initial.sql",
-  "002_conversations_memory_events.sql"
+  "002_conversations_memory_events.sql",
+  "003_auth.sql"
 ];
 
 export async function migrate(): Promise<void> {
