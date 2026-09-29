@@ -6,6 +6,7 @@ export interface AgentRequest {
   temperature?: number;
   maxSteps?: number;
   taskId?: string;
+  userId?: string;
 }
 
 export interface AgentResult {
