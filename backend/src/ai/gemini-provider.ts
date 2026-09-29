@@ -1,4 +1,14 @@
-import type { AiProvider, GenerateRequest, GenerateResponse } from "./types.js";
+import type { AiProvider, GenerateRequest, GenerateResponse, ToolCall } from "./types.js";
+
+type GeminiPart = {
+  text?: string;
+  functionCall?: { name?: string; args?: Record<string, unknown> };
+  functionResponse?: { name?: string; response?: Record<string, unknown> };
+};
+
+type GeminiCandidate = {
+  content?: { parts?: GeminiPart[] };
+};
 
 export class GeminiProvider implements AiProvider {
   constructor(
@@ -8,27 +18,56 @@ export class GeminiProvider implements AiProvider {
 
   async generate(request: GenerateRequest): Promise<GenerateResponse> {
     const model = request.model ?? this.defaultModel;
+    const contents = request.messages
+      .filter(message => message.role !== "system")
+      .map(message => {
+        if (message.role === "tool") {
+          let parsed: { name?: string; result?: unknown; error?: string };
+          try {
+            parsed = JSON.parse(message.content) as typeof parsed;
+          } catch {
+            parsed = { result: message.content };
+          }
+          return {
+            role: "user",
+            parts: [{
+              functionResponse: {
+                name: parsed.name ?? "unknown",
+                response: parsed.error ? { error: parsed.error } : { result: parsed.result ?? null }
+              }
+            }]
+          };
+        }
+
+        return {
+          role: message.role === "assistant" ? "model" : "user",
+          parts: [{ text: message.content }]
+        };
+      });
+
+    const toolConfig = request.tools?.length
+      ? {
+          functionDeclarations: request.tools.map(tool => ({
+            name: tool.name,
+            description: tool.description,
+            parametersJsonSchema: tool.inputSchema
+          }))
+        }
+      : undefined;
+
+    const firstSystemMessage = request.messages.find(message => message.role === "system");
+
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(this.apiKey)}`,
       {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          contents: request.messages
-            .filter(message => message.role !== "system")
-            .map(message => ({
-              role: message.role === "assistant" ? "model" : "user",
-              parts: [{ text: message.content }]
-            })),
-          systemInstruction: request.messages.find(message => message.role === "system")
-            ? {
-                parts: [
-                  {
-                    text: request.messages.find(message => message.role === "system")?.content ?? ""
-                  }
-                ]
-              }
+          contents,
+          systemInstruction: firstSystemMessage
+            ? { parts: [{ text: firstSystemMessage.content }] }
             : undefined,
+          tools: toolConfig ? [{ functionDeclarations: toolConfig.functionDeclarations }] : undefined,
           generationConfig:
             request.temperature === undefined ? undefined : { temperature: request.temperature }
         })
@@ -40,15 +79,25 @@ export class GeminiProvider implements AiProvider {
       throw new Error(`Gemini request failed (${response.status}): ${detail.slice(0, 1000)}`);
     }
 
-    const data = (await response.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-    };
-    const text = data.candidates?.[0]?.content?.parts?.map(part => part.text ?? "").join("") ?? "";
+    const data = (await response.json()) as { candidates?: GeminiCandidate[] };
+    const parts = data.candidates?.[0]?.content?.parts ?? [];
+    const text = parts.map(part => part.text ?? "").join("");
+    const toolCalls: ToolCall[] = [];
 
-    if (!text) {
-      throw new Error("Gemini returned no generated text.");
+    for (const [index, part] of parts.entries()) {
+      if (part.functionCall?.name) {
+        toolCalls.push({
+          id: `${part.functionCall.name}-${index}-${Date.now()}`,
+          name: part.functionCall.name,
+          input: part.functionCall.args ?? {}
+        });
+      }
     }
 
-    return { text, provider: "gemini", model };
+    if (!text && toolCalls.length === 0) {
+      throw new Error("Gemini returned no generated text or tool call.");
+    }
+
+    return { text, provider: "gemini", model, toolCalls };
   }
 }
