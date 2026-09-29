@@ -6,6 +6,7 @@ type TaskRow = {
   type: string;
   input: unknown;
   state: TaskState;
+  user_id: string | null;
   created_at: Date;
   updated_at: Date;
   error: string | null;
@@ -24,27 +25,31 @@ function toTask(row: TaskRow | undefined): Task {
     state: row.state,
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString(),
+    ...(row.user_id === null ? {} : { userId: row.user_id }),
     ...(row.error === null ? {} : { error: row.error }),
     ...(row.result === null ? {} : { result: row.result })
   };
 }
 
+const columns = "id, type, input, state, user_id, created_at, updated_at, error, result";
+
 export class PostgresTaskRepository {
-  async create(type: string, input: unknown): Promise<Task> {
+  async create(type: string, input: unknown, userId?: string): Promise<Task> {
     const { rows } = await pool.query<TaskRow>(
-      `INSERT INTO tasks (type, input)
-       VALUES ($1, $2::jsonb)
-       RETURNING id, type, input, state, created_at, updated_at, error, result`,
-      [type, JSON.stringify(input ?? null)]
+      `INSERT INTO tasks (type, input, user_id)
+       VALUES ($1, $2::jsonb, $3)
+       RETURNING ${columns}`,
+      [type, JSON.stringify(input ?? null), userId ?? null]
     );
     return toTask(rows[0]);
   }
 
-  async get(id: string): Promise<Task | undefined> {
+  async get(id: string, userId?: string): Promise<Task | undefined> {
     const { rows } = await pool.query<TaskRow>(
-      `SELECT id, type, input, state, created_at, updated_at, error, result
-       FROM tasks WHERE id = $1`,
-      [id]
+      `SELECT ${columns}
+       FROM tasks
+       WHERE id = $1 AND ($2::uuid IS NULL OR user_id = $2)`,
+      [id, userId ?? null]
     );
     return rows[0] ? toTask(rows[0]) : undefined;
   }
@@ -54,7 +59,7 @@ export class PostgresTaskRepository {
     try {
       await client.query("BEGIN");
       const { rows } = await client.query<TaskRow>(
-        `SELECT id, type, input, state, created_at, updated_at, error, result
+        `SELECT ${columns}
          FROM tasks
          WHERE state IN ('queued', 'retrying')
          ORDER BY created_at
