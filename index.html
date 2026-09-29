@@ -33,7 +33,7 @@
 </div>
 </aside>
 <main class="main">
-<header class="topbar"><button class="icon-button mobile-only" data-action="toggle-sidebar">☰</button><div class="mobile-title">Friday</div><div class="top-actions"><button class="icon-button" data-action="toggle-theme">☼</button><button class="icon-button" data-action="placeholder" aria-label="Friday settings">⚙</button></div></header>
+<header class="topbar"><button class="icon-button desktop-sidebar-toggle desktop-only" data-action="toggle-sidebar" aria-label="Toggle sidebar">☰</button><button class="icon-button mobile-only" data-action="toggle-sidebar">☰</button><div class="mobile-title">Friday</div><div class="top-actions"><button class="icon-button" data-action="toggle-theme">☼</button><button class="icon-button" data-action="placeholder" aria-label="Friday settings">⚙</button></div></header>
 <section class="workspace" id="workspace">
 <div class="welcome" id="welcome"><div class="welcome-mark"><svg viewBox="0 0 48 48"><path d="M24 5a19 19 0 1 0 17 10.4"/><path d="M17 18.5 24 12l7 6.5v9L24 34l-7-6.5z"/><path d="M31 18.5 39 12"/></svg></div><p class="eyebrow">Your AI agent</p><h1>How can I assist you?</h1><p class="subhead">Ask Friday to research, build, test, automate, or work with your projects.</p></div>
 <div class="suggestions" id="suggestions">
@@ -46,7 +46,7 @@
 </section>
 </main>
 </div>
-<input type="file" id="file-input" hidden multiple><div class="toast" id="toast" role="status"></div>
+<input type="file" id="file-input" hidden multiple><div class="toast" id="toast" role="status"></div><div class="auth-overlay" id="auth-overlay" hidden><div class="auth-card"><div class="welcome-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 5a19 19 0 1 0 17 10.4"/><path d="M17 18.5 24 12l7 6.5v9L24 34l-7-6.5z"/><path d="M31 18.5 39 12"/></svg></div><h2 id="auth-title">Sign in to Friday</h2><p class="auth-subtitle">Use your Friday account to continue.</p><form id="auth-form"><input id="auth-email" type="email" autocomplete="email" placeholder="Email" required><input id="auth-password" type="password" autocomplete="current-password" placeholder="Password" minlength="8" required><button class="auth-submit" type="submit">Sign in</button><p class="auth-error" id="auth-error" role="alert"></p></form><button class="auth-switch" id="auth-switch" type="button">Need an account? Register</button></div></div>
 <script src="./api.js" defer></script><script src="./app.js" defer></script>
 </body>
 </html>
