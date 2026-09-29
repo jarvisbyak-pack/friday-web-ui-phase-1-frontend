@@ -9,6 +9,7 @@ import {
 } from "./github.js";
 import { fileListTool, fileReadTool } from "./files.js";
 import { codeRunTool } from "./code-execution.js";
+import { webFetchTool } from "./web.js";
 import { ToolRegistry } from "./registry.js";
 
 export function createDefaultToolRegistry(): ToolRegistry {
@@ -24,5 +25,6 @@ export function createDefaultToolRegistry(): ToolRegistry {
   registry.register(fileListTool);
   registry.register(fileReadTool);
   registry.register(codeRunTool);
+  registry.register(webFetchTool);
   return registry;
 }
