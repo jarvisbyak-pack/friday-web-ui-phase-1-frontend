@@ -6,6 +6,7 @@ export interface ToolDefinition {
 
 export interface ToolExecutionContext {
   taskId?: string;
+  userId?: string;
 }
 
 export interface Tool {
