@@ -32,7 +32,8 @@ export class AgentService {
 
       messages.push({
         role: "assistant",
-        content: response.text
+        content: response.text,
+        ...(response.toolCalls.length > 0 ? { toolCalls: response.toolCalls } : {})
       });
 
       if (response.toolCalls.length === 0) {
@@ -58,7 +59,8 @@ export class AgentService {
           toolResults.push(toolResult);
           messages.push({
             role: "tool",
-            content: JSON.stringify(toolResult)
+            content: JSON.stringify(toolResult),
+            toolResult
           });
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
