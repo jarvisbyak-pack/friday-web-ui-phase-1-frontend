@@ -402,7 +402,7 @@
     if (action === "model") showToast("Gemini is the configured backend provider.");
 
     if (action === "settings") {
-      apiUrlInput.value = FridayApi.getApiBase().replace(/\/api$/, "");
+      apiUrlInput.value = FridayApi.getApiBase().replace(/\/api$/, "") || window.location.origin;
       settingsPanel.classList.add("visible");
       apiUrlInput.focus();
     }
