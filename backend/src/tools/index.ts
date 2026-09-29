@@ -8,6 +8,7 @@ import {
   githubUpsertFileTool
 } from "./github.js";
 import { fileListTool, fileReadTool } from "./files.js";
+import { codeRunTool } from "./code-execution.js";
 import { ToolRegistry } from "./registry.js";
 
 export function createDefaultToolRegistry(): ToolRegistry {
@@ -22,5 +23,6 @@ export function createDefaultToolRegistry(): ToolRegistry {
   registry.register(githubCreatePullRequestTool);
   registry.register(fileListTool);
   registry.register(fileReadTool);
+  registry.register(codeRunTool);
   return registry;
 }
