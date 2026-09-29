@@ -7,7 +7,8 @@ const envSchema = z.object({
   FRONTEND_ORIGIN: z.string().default("http://localhost:3000"),
   DATABASE_URL: z.string().min(1),
   DB_POOL_MAX: z.coerce.number().int().positive().max(100).default(10),
-  WORKER_POLL_MS: z.coerce.number().int().positive().default(1000)
+  WORKER_POLL_MS: z.coerce.number().int().positive().default(1000),
+  WORKER_STALE_TASK_MS: z.coerce.number().int().positive().default(300000)
 });
 
 export const config = envSchema.parse(process.env);
