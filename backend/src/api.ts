@@ -56,6 +56,13 @@ const authRegisterSchema = z.object({
 
 const authLoginSchema = authRegisterSchema;
 
+
+function getAuthenticatedUserId(req: Request): string {
+  const userId = (req as unknown as AuthenticatedRequest).userId;
+  if (!userId) throw new Error("Authenticated user context is missing.");
+  return userId;
+}
+
 function bearerToken(req: Request): string {
   const header = req.header("authorization");
   return header?.startsWith("Bearer ") ? header.slice(7).trim() : "";
@@ -163,7 +170,7 @@ export function createApi() {
       return;
     }
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = getAuthenticatedUserId(req);
       const conversation = await conversations.create(parsed.data.title, userId);
       res.status(201).json({ conversation });
     } catch (error) {
@@ -174,7 +181,7 @@ export function createApi() {
 
   app.get("/api/conversations", async (req, res) => {
     try {
-      res.json({ conversations: await conversations.list((req as AuthenticatedRequest).userId) });
+      res.json({ conversations: await conversations.list(getAuthenticatedUserId(req)) });
     } catch (error) {
       console.error("Conversation listing failed:", error);
       res.status(503).json({ error: { code: "DATABASE_UNAVAILABLE", message: "Conversation service unavailable." } });
@@ -183,7 +190,7 @@ export function createApi() {
 
   app.get("/api/conversations/:id/messages", async (req, res) => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = getAuthenticatedUserId(req);
       const conversation = await conversations.get(req.params.id);
       if (!conversation || conversation.userId !== userId) {
         res.status(404).json({ error: { code: "CONVERSATION_NOT_FOUND", message: "Conversation not found." } });
@@ -203,7 +210,7 @@ export function createApi() {
       return;
     }
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = getAuthenticatedUserId(req);
       const conversation = await conversations.get(req.params.id);
       if (!conversation || conversation.userId !== userId) {
         res.status(404).json({ error: { code: "CONVERSATION_NOT_FOUND", message: "Conversation not found." } });
@@ -219,7 +226,7 @@ export function createApi() {
 
   app.get("/api/files", async (req, res) => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = getAuthenticatedUserId(req);
       res.json({ files: await files.list(userId) });
     } catch (error) {
       console.error("File listing failed:", error);
@@ -234,7 +241,7 @@ export function createApi() {
       return;
     }
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = getAuthenticatedUserId(req);
       const content = Buffer.from(parsed.data.contentBase64, "base64");
       const file = await files.save(userId, parsed.data.name, parsed.data.mimeType, content);
       res.status(201).json({ file });
@@ -251,7 +258,7 @@ export function createApi() {
 
   app.get("/api/files/:id", async (req, res) => {
     try {
-      const result = await files.read((req as AuthenticatedRequest).userId, req.params.id);
+      const result = await files.read(getAuthenticatedUserId(req), req.params.id);
       if (!result) {
         res.status(404).json({ error: { code: "FILE_NOT_FOUND", message: "File not found." } });
         return;
@@ -272,7 +279,7 @@ export function createApi() {
       return;
     }
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = getAuthenticatedUserId(req);
       if (parsed.data.conversationId) {
         const conversation = await conversations.get(parsed.data.conversationId);
         if (!conversation || conversation.userId !== userId) {
@@ -295,7 +302,7 @@ export function createApi() {
       return;
     }
     try {
-      res.json({ memories: await conversations.searchMemories(query, (req as AuthenticatedRequest).userId) });
+      res.json({ memories: await conversations.searchMemories(query, getAuthenticatedUserId(req)) });
     } catch (error) {
       console.error("Memory search failed:", error);
       res.status(503).json({ error: { code: "DATABASE_UNAVAILABLE", message: "Memory service unavailable." } });
@@ -324,7 +331,7 @@ export function createApi() {
       return;
     }
     try {
-      const result = await agentService.run({ ...parsed.data, userId: (req as AuthenticatedRequest).userId });
+      const result = await agentService.run({ ...parsed.data, userId: getAuthenticatedUserId(req) });
       res.json({ result });
     } catch (error) {
       console.error("Agent execution failed:", error);
@@ -339,7 +346,7 @@ export function createApi() {
       return;
     }
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = getAuthenticatedUserId(req);
       const task = await taskService.create(parsed.data.type, parsed.data.input, userId);
       await events.append(task.id, "task.queued", { type: task.type });
       res.status(202).json({ task });
@@ -350,7 +357,7 @@ export function createApi() {
   });
 
   app.get("/api/tasks/:id/events", async (req, res) => {
-    const userId = (req as AuthenticatedRequest).userId;
+    const userId = getAuthenticatedUserId(req);
     const task = await taskService.get(req.params.id, userId);
     if (!task) {
       res.status(404).json({ error: { code: "TASK_NOT_FOUND", message: "Task not found." } });
@@ -390,7 +397,7 @@ export function createApi() {
 
   app.get("/api/tasks/:id", async (req, res) => {
     try {
-      const task = await taskService.get(req.params.id, (req as AuthenticatedRequest).userId);
+      const task = await taskService.get(req.params.id, getAuthenticatedUserId(req));
       if (!task) {
         res.status(404).json({ error: { code: "TASK_NOT_FOUND", message: "Task not found." } });
         return;
