@@ -9,6 +9,7 @@ import { FileService } from "./files/service.js";
 import { TaskEventRepository } from "./tasks/task-events.js";
 import { PostgresTaskRepository } from "./tasks/task-repository.js";
 import { TaskService } from "./tasks/task-service.js";
+import { checkDatabase } from "./db/pool.js";
 import { config } from "./config.js";
 
 const taskRequestSchema = z.object({
@@ -103,7 +104,7 @@ export function createApi() {
 
   app.get("/api/ready", async (_req, res) => {
     try {
-      await taskService.get("__readiness_probe__");
+      await checkDatabase();
       res.json({ ok: true, ready: true, database: "ok" });
     } catch {
       res.status(503).json({ ok: false, ready: false, database: "unavailable" });
