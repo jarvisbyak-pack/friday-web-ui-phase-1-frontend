@@ -28,7 +28,6 @@ export class TaskWorker {
     while (this.running) {
       try {
         await this.repository.recoverStaleRunningTasks(this.staleTaskMs);
-
         const task = await this.repository.claimNext();
         if (task) {
           await this.events.append(task.id, "task.running", { type: task.type });
@@ -64,18 +63,15 @@ export class TaskWorker {
 
         const result = await this.agentService.run({
           ...request,
-          taskId: task.id
+          taskId: task.id,
+          userId: task.userId
         });
         await this.repository.complete(task.id, result);
         await this.events.append(task.id, "task.completed", { type: task.type });
         return;
       }
 
-      const result = {
-        status: "accepted",
-        taskId: task.id,
-        type: task.type
-      };
+      const result = { status: "accepted", taskId: task.id, type: task.type };
       await this.repository.complete(task.id, result);
       await this.events.append(task.id, "task.completed", { type: task.type });
     } catch (error) {
