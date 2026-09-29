@@ -3,13 +3,15 @@ import type { ChatMessage, ToolCall, ToolResult } from "../ai/types.js";
 import { createDefaultToolRegistry } from "../tools/index.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import type { AgentRequest, AgentResult } from "./types.js";
+import { TaskEventRepository } from "../tasks/task-events.js";
 
 const DEFAULT_MAX_STEPS = 8;
 
 export class AgentService {
   constructor(
     private readonly aiService = new AiService(),
-    private readonly registry: ToolRegistry = createDefaultToolRegistry()
+    private readonly registry: ToolRegistry = createDefaultToolRegistry(),
+    private readonly events = new TaskEventRepository()
   ) {}
 
   async run(request: AgentRequest): Promise<AgentResult> {
@@ -23,6 +25,10 @@ export class AgentService {
     const toolResults: ToolResult[] = [];
 
     for (let step = 1; step <= maxSteps; step += 1) {
+      if (request.taskId) {
+        await this.events.append(request.taskId, "agent.step.started", { step, maxSteps });
+      }
+
       const response = await this.aiService.generate({
         messages,
         model: request.model,
@@ -37,6 +43,9 @@ export class AgentService {
       });
 
       if (response.toolCalls.length === 0) {
+        if (request.taskId) {
+          await this.events.append(request.taskId, "agent.completed", { step });
+        }
         return {
           text: response.text,
           model: response.model,
@@ -49,6 +58,14 @@ export class AgentService {
 
       for (const call of response.toolCalls) {
         toolCalls.push(call);
+        if (request.taskId) {
+          await this.events.append(request.taskId, "agent.tool.started", {
+            step,
+            toolCallId: call.id,
+            name: call.name
+          });
+        }
+
         try {
           const result = await this.registry.execute(call.name, call.input, { taskId: request.taskId });
           const toolResult: ToolResult = {
@@ -62,6 +79,13 @@ export class AgentService {
             content: JSON.stringify(toolResult),
             toolResult
           });
+          if (request.taskId) {
+            await this.events.append(request.taskId, "agent.tool.completed", {
+              step,
+              toolCallId: call.id,
+              name: call.name
+            });
+          }
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
           const toolResult: ToolResult = {
@@ -74,10 +98,21 @@ export class AgentService {
             role: "tool",
             content: JSON.stringify(toolResult)
           });
+          if (request.taskId) {
+            await this.events.append(request.taskId, "agent.tool.failed", {
+              step,
+              toolCallId: call.id,
+              name: call.name,
+              error: message
+            });
+          }
         }
       }
     }
 
+    if (request.taskId) {
+      await this.events.append(request.taskId, "agent.max_steps", { maxSteps });
+    }
     throw new Error(`Agent reached the maximum step limit of ${maxSteps}.`);
   }
 }
