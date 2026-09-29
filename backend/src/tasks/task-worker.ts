@@ -6,7 +6,8 @@ export class TaskWorker {
 
   constructor(
     private readonly repository: PostgresTaskRepository,
-    private readonly pollMs = 1000
+    private readonly pollMs = 1000,
+    private readonly staleTaskMs = 300000
   ) {}
 
   start(): void {
@@ -22,6 +23,8 @@ export class TaskWorker {
   private async loop(): Promise<void> {
     while (this.running) {
       try {
+        await this.repository.recoverStaleRunningTasks(this.staleTaskMs);
+
         const task = await this.repository.claimNext();
         if (task) {
           await this.execute(task);
