@@ -71,3 +71,5 @@ describe("Friday backend safety and agent seams", () => {
     );
   });
 });
+
+// Runtime verification branch marker.
