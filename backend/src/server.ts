@@ -6,7 +6,11 @@ import { PostgresTaskRepository } from "./tasks/task-repository.js";
 import { TaskWorker } from "./tasks/task-worker.js";
 
 const app = createApi();
-const worker = new TaskWorker(new PostgresTaskRepository(), config.WORKER_POLL_MS);
+const worker = new TaskWorker(
+  new PostgresTaskRepository(),
+  config.WORKER_POLL_MS,
+  config.WORKER_STALE_TASK_MS
+);
 
 async function start(): Promise<void> {
   await checkDatabase();
