@@ -1,3 +1,4 @@
+import { AgentService } from "../agent/service.js";
 import type { Task } from "../types/task.js";
 import { PostgresTaskRepository } from "./task-repository.js";
 
@@ -7,7 +8,8 @@ export class TaskWorker {
   constructor(
     private readonly repository: PostgresTaskRepository,
     private readonly pollMs = 1000,
-    private readonly staleTaskMs = 300000
+    private readonly staleTaskMs = 300000,
+    private readonly agentService = new AgentService()
   ) {}
 
   start(): void {
@@ -40,6 +42,31 @@ export class TaskWorker {
 
   private async execute(task: Task): Promise<void> {
     try {
+      if (task.type === "agent") {
+        const input = task.input;
+        if (!input || typeof input !== "object" || !("messages" in input)) {
+          throw new Error("Agent task requires a messages array.");
+        }
+
+        const request = input as {
+          messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
+          model?: string;
+          temperature?: number;
+          maxSteps?: number;
+        };
+
+        if (!Array.isArray(request.messages) || request.messages.length === 0) {
+          throw new Error("Agent task requires at least one message.");
+        }
+
+        const result = await this.agentService.run({
+          ...request,
+          taskId: task.id
+        });
+        await this.repository.complete(task.id, result);
+        return;
+      }
+
       const result = {
         status: "accepted",
         taskId: task.id,
