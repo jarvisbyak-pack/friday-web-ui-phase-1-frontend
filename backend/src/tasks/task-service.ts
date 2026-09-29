@@ -1,14 +1,14 @@
 import type { Task } from "../types/task.js";
-import { InMemoryTaskStore } from "./task-store.js";
+import { PostgresTaskRepository } from "./task-repository.js";
 
 export class TaskService {
-  constructor(private readonly store: InMemoryTaskStore) {}
+  constructor(private readonly repository: PostgresTaskRepository) {}
 
-  create(type: string, input: unknown): Task {
-    return this.store.create(type, input);
+  create(type: string, input: unknown): Promise<Task> {
+    return this.repository.create(type, input);
   }
 
-  get(id: string): Task | undefined {
-    return this.store.get(id);
+  get(id: string): Promise<Task | undefined> {
+    return this.repository.get(id);
   }
 }
