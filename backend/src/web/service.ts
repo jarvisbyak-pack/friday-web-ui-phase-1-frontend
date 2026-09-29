@@ -57,9 +57,10 @@ export class WebFetchService {
 
     const response = await fetch(url, {
       signal: AbortSignal.timeout(Math.min(Math.max(timeoutMs, 1000), 30000)),
-      redirect: "follow",
+      redirect: "manual",
       headers: { "User-Agent": "Friday-Agent/0.1" }
     });
+    if (response.status >= 300 && response.status < 400) throw new Error("Redirect responses are not allowed by the web fetch tool.");
     const bytes = new Uint8Array(await response.arrayBuffer());
     if (bytes.byteLength > 2000000) throw new Error("Web response exceeds the 2 MB limit.");
 
