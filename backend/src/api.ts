@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from "express";
 import { z } from "zod";
+import { AiService } from "./ai/service.js";
 import { PostgresTaskRepository } from "./tasks/task-repository.js";
 import { TaskService } from "./tasks/task-service.js";
 
@@ -8,9 +9,21 @@ const taskRequestSchema = z.object({
   input: z.unknown().optional()
 });
 
+const chatRequestSchema = z.object({
+  messages: z.array(
+    z.object({
+      role: z.enum(["system", "user", "assistant"]),
+      content: z.string().min(1)
+    })
+  ).min(1),
+  model: z.string().trim().min(1).optional(),
+  temperature: z.number().min(0).max(2).optional()
+});
+
 export function createApi() {
   const app = express();
   const taskService = new TaskService(new PostgresTaskRepository());
+  const aiService = new AiService();
 
   app.disable("x-powered-by");
   app.use(express.json({ limit: "2mb" }));
@@ -25,6 +38,26 @@ export function createApi() {
       res.json({ ok: true, ready: true, database: "ok" });
     } catch {
       res.status(503).json({ ok: false, ready: false, database: "unavailable" });
+    }
+  });
+
+  app.post("/api/chat", async (req: Request, res: Response) => {
+    const parsed = chatRequestSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: { code: "INVALID_REQUEST", message: "Invalid chat request.", details: parsed.error.flatten() }
+      });
+      return;
+    }
+
+    try {
+      const result = await aiService.generate(parsed.data);
+      res.json({ result });
+    } catch (error) {
+      console.error("AI generation failed:", error);
+      res.status(502).json({
+        error: { code: "AI_PROVIDER_ERROR", message: "AI provider request failed." }
+      });
     }
   });
 
