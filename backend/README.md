@@ -25,5 +25,6 @@ The API defaults to port 3001.
 
 - GET /api/health
 - GET /api/ready
+- POST /api/chat
 - POST /api/tasks
 - GET /api/tasks/:id
