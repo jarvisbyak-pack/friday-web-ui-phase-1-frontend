@@ -1,6 +1,7 @@
 import { AgentService } from "../agent/service.js";
 import type { Task } from "../types/task.js";
 import { PostgresTaskRepository } from "./task-repository.js";
+import { TaskEventRepository } from "./task-events.js";
 
 export class TaskWorker {
   private running = false;
@@ -9,7 +10,8 @@ export class TaskWorker {
     private readonly repository: PostgresTaskRepository,
     private readonly pollMs = 1000,
     private readonly staleTaskMs = 300000,
-    private readonly agentService = new AgentService()
+    private readonly agentService = new AgentService(),
+    private readonly events = new TaskEventRepository()
   ) {}
 
   start(): void {
@@ -29,6 +31,7 @@ export class TaskWorker {
 
         const task = await this.repository.claimNext();
         if (task) {
+          await this.events.append(task.id, "task.running", { type: task.type });
           await this.execute(task);
         } else {
           await this.sleep(this.pollMs);
@@ -64,6 +67,7 @@ export class TaskWorker {
           taskId: task.id
         });
         await this.repository.complete(task.id, result);
+        await this.events.append(task.id, "task.completed", { type: task.type });
         return;
       }
 
@@ -73,9 +77,11 @@ export class TaskWorker {
         type: task.type
       };
       await this.repository.complete(task.id, result);
+      await this.events.append(task.id, "task.completed", { type: task.type });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       await this.repository.fail(task.id, message);
+      await this.events.append(task.id, "task.failed", { error: message });
     }
   }
 
