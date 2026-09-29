@@ -7,7 +7,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 const migrationFiles = [
   "001_initial.sql",
   "002_conversations_memory_events.sql",
-  "003_auth.sql"
+  "003_auth.sql",
+  "004_files.sql"
 ];
 
 export async function migrate(): Promise<void> {
