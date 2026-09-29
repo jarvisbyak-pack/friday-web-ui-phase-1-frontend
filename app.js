@@ -402,7 +402,7 @@
     if (action === "model") showToast("Gemini is the configured backend provider.");
 
     if (action === "settings") {
-      apiUrlInput.value = FridayApi.getApiBase().replace(/\/api$/, "") || window.location.origin;
+      apiUrlInput.value = (FridayApi.getApiBase().replace(/\/api$/, "") || window.location.origin) || window.location.origin;
       settingsPanel.classList.add("visible");
       apiUrlInput.focus();
     }
@@ -428,7 +428,7 @@
 
   if (localStorage.getItem("friday_theme") === "light") document.body.classList.add("light");
 
-  apiUrlInput.value = FridayApi.getApiBase().replace(/\/api$/, "");
+  apiUrlInput.value = (FridayApi.getApiBase().replace(/\/api$/, "") || window.location.origin);
 
   (async () => {
     if (!FridayApi.getToken()) {
