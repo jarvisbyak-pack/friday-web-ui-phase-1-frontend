@@ -1,6 +1,8 @@
 import "dotenv/config";
 import { z } from "zod";
 
+const booleanEnv = z.enum(["true", "false"]).default("false").transform(value => value === "true");
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(3001),
@@ -12,7 +14,10 @@ const envSchema = z.object({
   AUTH_SESSION_DAYS: z.coerce.number().int().positive().max(30).default(7),
   AI_PROVIDER: z.enum(["gemini"]).default("gemini"),
   GEMINI_API_KEY: z.string().optional(),
-  GEMINI_MODEL: z.string().min(1).default("gemini-2.5-flash")
+  GEMINI_MODEL: z.string().min(1).default("gemini-2.5-flash"),
+  GITHUB_TOKEN: z.string().optional(),
+  GITHUB_API_URL: z.string().url().default("https://api.github.com"),
+  FRIDAY_ALLOW_GITHUB_MUTATIONS: booleanEnv
 });
 
 export const config = envSchema.parse(process.env);
