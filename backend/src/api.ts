@@ -5,6 +5,7 @@ import { requireAuth, type AuthenticatedRequest } from "./auth/middleware.js";
 import { AiService } from "./ai/service.js";
 import { AgentService } from "./agent/service.js";
 import { ConversationRepository } from "./conversations/repository.js";
+import { FileService } from "./files/service.js";
 import { TaskEventRepository } from "./tasks/task-events.js";
 import { PostgresTaskRepository } from "./tasks/task-repository.js";
 import { TaskService } from "./tasks/task-service.js";
@@ -35,6 +36,12 @@ const storedMessageSchema = z.object({
   metadata: z.unknown().optional()
 });
 
+const fileUploadSchema = z.object({
+  name: z.string().trim().min(1).max(255),
+  mimeType: z.string().trim().min(1).max(255).default("application/octet-stream"),
+  contentBase64: z.string().min(1).max(14000000)
+});
+
 const memorySchema = z.object({
   content: z.string().trim().min(1).max(10000),
   kind: z.string().trim().min(1).max(100).optional(),
@@ -62,10 +69,11 @@ export function createApi() {
   const aiService = new AiService();
   const agentService = new AgentService();
   const conversations = new ConversationRepository();
+  const files = new FileService();
   const events = new TaskEventRepository();
 
   app.disable("x-powered-by");
-  app.use(express.json({ limit: "2mb" }));
+  app.use(express.json({ limit: "15mb" }));
 
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true, service: "friday-backend", timestamp: new Date().toISOString() });
@@ -143,6 +151,7 @@ export function createApi() {
 
   app.use("/api/conversations", requireAuthentication);
   app.use("/api/memories", requireAuthentication);
+  app.use("/api/files", requireAuthentication);
   app.use("/api/chat", requireAuthentication);
   app.use("/api/agent", requireAuthentication);
   app.use("/api/tasks", requireAuthentication);
@@ -208,6 +217,54 @@ export function createApi() {
     }
   });
 
+  app.get("/api/files", async (req, res) => {
+    try {
+      const userId = (req as AuthenticatedRequest).userId;
+      res.json({ files: await files.list(userId) });
+    } catch (error) {
+      console.error("File listing failed:", error);
+      res.status(503).json({ error: { code: "FILE_STORE_UNAVAILABLE", message: "File service unavailable." } });
+    }
+  });
+
+  app.post("/api/files", async (req, res) => {
+    const parsed = fileUploadSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: { code: "INVALID_REQUEST", message: "Invalid file upload request.", details: parsed.error.flatten() } });
+      return;
+    }
+    try {
+      const userId = (req as AuthenticatedRequest).userId;
+      const content = Buffer.from(parsed.data.contentBase64, "base64");
+      const file = await files.save(userId, parsed.data.name, parsed.data.mimeType, content);
+      res.status(201).json({ file });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "File upload failed.";
+      if (message.includes("exceeds the")) {
+        res.status(413).json({ error: { code: "FILE_TOO_LARGE", message } });
+        return;
+      }
+      console.error("File upload failed:", error);
+      res.status(503).json({ error: { code: "FILE_STORE_UNAVAILABLE", message: "File service unavailable." } });
+    }
+  });
+
+  app.get("/api/files/:id", async (req, res) => {
+    try {
+      const result = await files.read((req as AuthenticatedRequest).userId, req.params.id);
+      if (!result) {
+        res.status(404).json({ error: { code: "FILE_NOT_FOUND", message: "File not found." } });
+        return;
+      }
+      res.setHeader("Content-Type", result.file.mimeType);
+      res.setHeader("Content-Disposition", `attachment; filename="${result.file.name.replace(/["\\r\\n]/g, "")}"`);
+      res.send(result.content);
+    } catch (error) {
+      console.error("File read failed:", error);
+      res.status(503).json({ error: { code: "FILE_STORE_UNAVAILABLE", message: "File service unavailable." } });
+    }
+  });
+
   app.post("/api/memories", async (req, res) => {
     const parsed = memorySchema.safeParse(req.body);
     if (!parsed.success) {
@@ -267,7 +324,7 @@ export function createApi() {
       return;
     }
     try {
-      const result = await agentService.run(parsed.data);
+      const result = await agentService.run({ ...parsed.data, userId: (req as AuthenticatedRequest).userId });
       res.json({ result });
     } catch (error) {
       console.error("Agent execution failed:", error);
