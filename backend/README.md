@@ -18,6 +18,8 @@ Phase 2 backend foundation for the Friday web-based AI agent, independent of n8n
 - GitHub read tools for repositories, files, and code search.
 - GitHub mutation tools for branches, files, and pull requests, protected by an explicit feature flag.
 - Authenticated file storage with per-user ownership, size limits, checksums, and agent read/list tools.
+- Controlled code execution with an explicit allowlist and default-off mutation gate.
+- Read-only public web fetching with basic private-network/SSRF protections.
 - Explicit API and service boundaries for future files, browser, code-execution, and deployment tools.
 
 ## Principles
@@ -78,6 +80,8 @@ The agent registry currently exposes:
 - github.create_pull_request
 - files.list
 - files.read
+- code.run
+- web.fetch
 
 Set `GITHUB_TOKEN` for GitHub access. Set `FRIDAY_ALLOW_GITHUB_MUTATIONS=true` only when repository mutations are intentionally authorized. The mutation flag defaults to false.
 
