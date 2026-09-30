@@ -9,7 +9,20 @@
     return raw.replace(/\/+$/, "").endsWith("/api") ? raw.replace(/\/+$/, "") : raw.replace(/\/+$/, "") + "/api";
   };
 
-  const getApiBase = () => normalizeBase(localStorage.getItem(STORAGE_KEY) || "/api");
+  const getConfiguredApiBase = () => {
+  const runtime = window.FRIDAY_CONFIG?.API_BASE_URL;
+  if (runtime) return runtime;
+  const build = "__FRIDAY_API_BASE_URL__";
+  return build !== "__FRIDAY_API_BASE_URL__" ? build : "";
+};
+const getApiBase = () => {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  const configured = getConfiguredApiBase();
+  if (stored) return normalizeBase(stored);
+  if (configured) return normalizeBase(configured);
+  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") return "/api";
+  throw new Error("Friday backend URL is not configured for this deployment.");
+};
   const setApiBase = value => localStorage.setItem(STORAGE_KEY, normalizeBase(value));
   const getToken = () => localStorage.getItem(TOKEN_KEY) || "";
   const setToken = token => token ? localStorage.setItem(TOKEN_KEY, token) : localStorage.removeItem(TOKEN_KEY);
