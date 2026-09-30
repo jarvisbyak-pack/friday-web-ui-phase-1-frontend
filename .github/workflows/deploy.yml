@@ -1,0 +1,47 @@
+name: Deploy Friday frontend to GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate backend URL
+        env:
+          FRIDAY_API_BASE_URL: ${{ vars.FRIDAY_API_BASE_URL }}
+        run: |
+          test -n "$FRIDAY_API_BASE_URL"
+          case "$FRIDAY_API_BASE_URL" in
+            https://*) ;;
+            *) echo "FRIDAY_API_BASE_URL must be an HTTPS backend origin." >&2; exit 1 ;;
+          esac
+          node -e "new URL(process.env.FRIDAY_API_BASE_URL)"
+      - name: Generate production runtime configuration
+        env:
+          FRIDAY_API_BASE_URL: ${{ vars.FRIDAY_API_BASE_URL }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          value = os.environ["FRIDAY_API_BASE_URL"].rstrip("/")
+          with open("runtime-config.js", "w", encoding="utf-8") as f:
+              f.write("window.FRIDAY_CONFIG = " + json.dumps({"API_BASE_URL": value}) + ";\n")
+          PY
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: "."
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
