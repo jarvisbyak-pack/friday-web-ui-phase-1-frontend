@@ -6,7 +6,7 @@ const booleanEnv = z.enum(["true", "false"]).default("false").transform(value =>
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(3001),
-  FRONTEND_ORIGIN: z.string().default("http://localhost:3000"),
+  FRONTEND_ORIGIN: z.string().default("http://localhost:3000,https://jarvisbyak-pack.github.io"),
   DATABASE_URL: z.string().min(1),
   DB_POOL_MAX: z.coerce.number().int().positive().max(100).default(10),
   WORKER_POLL_MS: z.coerce.number().int().positive().default(1000),
