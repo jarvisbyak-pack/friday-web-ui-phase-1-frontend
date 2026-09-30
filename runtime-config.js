@@ -1,3 +1,3 @@
 window.FRIDAY_CONFIG = {
-  API_BASE_URL: "__FRIDAY_API_BASE_URL__"
+  API_BASE_URL: ""
 };
