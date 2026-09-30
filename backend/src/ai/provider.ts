@@ -10,7 +10,7 @@ class RoutingProvider implements AiProvider {
   ) {}
 
   generate(request: GenerateRequest): Promise<GenerateResponse> {
-    const wantsOpenRouter = request.model?.startsWith("z-ai/") || request.model?.startsWith("openrouter/");
+    const wantsOpenRouter = config.AI_PROVIDER === "openrouter" || request.model?.startsWith("z-ai/") || request.model?.startsWith("openrouter/");
     if (wantsOpenRouter) {
       if (!this.openrouter) throw new Error("OPENROUTER_API_KEY is required for GLM/OpenRouter models.");
       return this.openrouter.generate({
