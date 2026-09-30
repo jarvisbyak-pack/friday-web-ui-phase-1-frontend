@@ -10,6 +10,7 @@ import { TaskEventRepository } from "./tasks/task-events.js";
 import { PostgresTaskRepository } from "./tasks/task-repository.js";
 import { TaskService } from "./tasks/task-service.js";
 import { config } from "./config.js";
+import { createDefaultToolRegistry } from "./tools/index.js";
 
 const taskRequestSchema = z.object({
   type: z.string().trim().min(1).max(200),
@@ -83,7 +84,15 @@ export function createApi() {
   app.disable("x-powered-by");
   app.use((req, res, next) => {
     const origin = req.header("origin");
-    if (!origin || origin === config.FRONTEND_ORIGIN) {
+    let sameHostFrontend = false;
+    if (origin) {
+      try {
+        const parsedOrigin = new URL(origin);
+        const localNetworkHost = parsedOrigin.hostname.startsWith("10.") || parsedOrigin.hostname.startsWith("192.168.") || parsedOrigin.hostname.startsWith("127.") || parsedOrigin.hostname.startsWith("172.");
+        sameHostFrontend = parsedOrigin.port === "3000" && (parsedOrigin.hostname === req.hostname || localNetworkHost);
+      } catch {}
+    }
+    if (!origin || origin === config.FRONTEND_ORIGIN || sameHostFrontend) {
       res.setHeader("Access-Control-Allow-Origin", origin ?? config.FRONTEND_ORIGIN);
     }
     res.setHeader("Vary", "Origin");
@@ -422,6 +431,15 @@ export function createApi() {
       console.error("Task lookup failed:", error);
       res.status(503).json({ error: { code: "TASK_STORE_UNAVAILABLE", message: "Task service unavailable." } });
     }
+  });
+
+  app.get("/api/tools", requireAuthentication, (_req, res) => {
+    const registry = createDefaultToolRegistry();
+    res.json({ tools: registry.list().map(tool => tool.definition) });
+  });
+
+  app.get("/api/projects", requireAuthentication, (_req, res) => {
+    res.json({ projects: [{ id: "friday-web-ui-phase-1-frontend", name: "Friday Web UI — Phase 1 Frontend", repository: "jarvisbyak-pack/friday-web-ui-phase-1-frontend", branch: "main", status: "active", description: "Web UI foundation for the Friday AI agent platform." }] });
   });
 
   app.use((_req, res) => {

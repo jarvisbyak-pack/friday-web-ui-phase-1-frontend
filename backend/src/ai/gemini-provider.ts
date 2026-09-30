@@ -13,7 +13,8 @@ type GeminiCandidate = {
 export class GeminiProvider implements AiProvider {
   constructor(
     private readonly apiKey: string,
-    private readonly defaultModel: string
+    private readonly defaultModel: string,
+    private readonly fallbackModel?: string
   ) {}
 
   async generate(request: GenerateRequest): Promise<GenerateResponse> {
@@ -69,26 +70,44 @@ export class GeminiProvider implements AiProvider {
 
     const firstSystemMessage = request.messages.find(message => message.role === "system");
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(this.apiKey)}`,
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          contents,
-          systemInstruction: firstSystemMessage
-            ? { parts: [{ text: firstSystemMessage.content }] }
-            : undefined,
-          tools: functionDeclarations ? [{ functionDeclarations }] : undefined,
-          generationConfig:
-            request.temperature === undefined ? undefined : { temperature: request.temperature }
-        })
-      }
-    );
+    const models = [model, ...(this.fallbackModel && this.fallbackModel !== model ? [this.fallbackModel] : [])];
+    let response: Response | undefined;
+    let lastDetail = "";
+    let activeModel = model;
 
-    if (!response.ok) {
-      const detail = await response.text();
-      throw new Error(`Gemini request failed (${response.status}): ${detail.slice(0, 1000)}`);
+    for (const candidateModel of models) {
+      activeModel = candidateModel;
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(candidateModel)}:generateContent?key=${encodeURIComponent(this.apiKey)}`,
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              contents,
+              systemInstruction: firstSystemMessage
+                ? { parts: [{ text: firstSystemMessage.content }] }
+                : undefined,
+              tools: functionDeclarations ? [{ functionDeclarations }] : undefined,
+              generationConfig:
+                request.temperature === undefined ? undefined : { temperature: request.temperature }
+            })
+          }
+        );
+
+        if (response.ok) break;
+
+        lastDetail = await response.text();
+        if (response.status !== 429 && response.status !== 500 && response.status !== 502 && response.status !== 503 && response.status !== 504) break;
+        if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 750 * (attempt + 1)));
+      }
+
+      if (response?.ok) break;
+      if (response && ![429, 500, 502, 503, 504].includes(response.status)) break;
+    }
+
+    if (!response?.ok) {
+      throw new Error(`Gemini request failed (${response?.status ?? 503}) using ${activeModel}: ${lastDetail.slice(0, 1000)}`);
     }
 
     const data = (await response.json()) as { candidates?: GeminiCandidate[] };
@@ -110,6 +129,6 @@ export class GeminiProvider implements AiProvider {
       throw new Error("Gemini returned no generated text or tool call.");
     }
 
-    return { text, provider: "gemini", model, toolCalls };
+    return { text, provider: "gemini", model: activeModel, toolCalls };
   }
 }
