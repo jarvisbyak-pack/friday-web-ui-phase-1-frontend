@@ -1,5 +1,4 @@
 name: Friday frontend checks
-
 on:
   push:
     branches: [main]
@@ -7,7 +6,9 @@ on:
       - "app.js"
       - "api.js"
       - "index.html"
-      - "styles.css"\n      - "face.js"\n      - "face.css"
+      - "styles.css"
+      - "face.js"
+      - "face.css"
       - ".github/workflows/frontend.yml"
   pull_request:
     paths:
@@ -15,9 +16,10 @@ on:
       - "api.js"
       - "index.html"
       - "styles.css"
+      - "face.js"
+      - "face.css"
       - ".github/workflows/frontend.yml"
   workflow_dispatch:
-
 jobs:
   syntax:
     runs-on: ubuntu-latest
@@ -29,8 +31,22 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check api.js
-          node --check app.js\n          node --check face.js
+          node --check app.js
+          node --check face.js
       - name: Check required frontend files
         run: |
           test -s index.html
-          test -s styles.css\n          test -s face.css\n          test -s face.js
+          test -s styles.css
+          test -s face.css
+          test -s face.js
+      - name: Check production API configuration
+        if: github.event_name != 'pull_request'
+        env:
+          FRIDAY_API_BASE_URL: ${{ vars.FRIDAY_API_BASE_URL }}
+        run: |
+          test -n "$FRIDAY_API_BASE_URL"
+          case "$FRIDAY_API_BASE_URL" in
+            https://*) ;;
+            *) echo "FRIDAY_API_BASE_URL must be an HTTPS backend origin." >&2; exit 1 ;;
+          esac
+          node -e "new URL(process.env.FRIDAY_API_BASE_URL)"
