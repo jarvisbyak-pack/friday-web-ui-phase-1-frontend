@@ -1,4 +1,5 @@
 import express, { type Request, type Response } from "express";
+import cors from "cors";
 import { z } from "zod";
 import { AuthService } from "./auth/service.js";
 import { requireAuth, type AuthenticatedRequest } from "./auth/middleware.js";
@@ -83,28 +84,24 @@ export function createApi() {
   const events = new TaskEventRepository();
 
   app.disable("x-powered-by");
-  app.use((req, res, next) => {
-    const origin = req.header("origin");
-    let sameHostFrontend = false;
-    if (origin) {
-      try {
-        const parsedOrigin = new URL(origin);
-        const localNetworkHost = parsedOrigin.hostname.startsWith("10.") || parsedOrigin.hostname.startsWith("192.168.") || parsedOrigin.hostname.startsWith("127.") || parsedOrigin.hostname.startsWith("172.");
-        sameHostFrontend = parsedOrigin.port === "3000" && (parsedOrigin.hostname === req.hostname || localNetworkHost);
-      } catch {}
-    }
-    if (!origin || origin === config.FRONTEND_ORIGIN || sameHostFrontend) {
-      res.setHeader("Access-Control-Allow-Origin", origin ?? config.FRONTEND_ORIGIN);
-    }
-    res.setHeader("Vary", "Origin");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
-    if (req.method === "OPTIONS") {
-      res.status(204).send();
-      return;
-    }
-    next();
-  });
+
+  const allowedOrigins = new Set(
+    config.FRONTEND_ORIGIN.split(",").map(origin => origin.trim()).filter(Boolean)
+  );
+
+  app.use(cors({
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, false);
+        return;
+      }
+      callback(null, allowedOrigins.has(origin) ? origin : false);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 204
+  }));
   app.use(express.json({ limit: "15mb" }));
 
   app.get("/api/health", (_req, res) => {
