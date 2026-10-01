@@ -72,6 +72,17 @@
     authError.classList.remove("visible");
   };
 
+  const enterGuestMode = () => {
+    currentUser = null;
+    hideAuth();
+    setStatus("Guest mode", "online");
+    connectionState.textContent = "UI preview • sign in for backend";
+    connectionState.className = "";
+    $(".profile-name").textContent = "Guest";
+    $(".profile-subtitle").textContent = "Sign in to connect";
+    logoutButton.textContent = "Sign in";
+  };
+
   const resetConversationView = () => {
     conversation.innerHTML = "";
     conversation.classList.remove("visible");
@@ -358,12 +369,15 @@
   $("#cancel-settings").addEventListener("click", () => settingsPanel.classList.remove("visible"));
 
   logoutButton.addEventListener("click", async () => {
+    if (!FridayApi.getToken()) {
+      showAuth();
+      return;
+    }
     await FridayApi.logout();
     currentUser = null;
     currentConversationId = "";
     resetConversationView();
-    setStatus("Signed out", "error");
-    showAuth();
+    enterGuestMode();
   });
 
   document.addEventListener("click", event => {
@@ -407,7 +421,10 @@
       apiUrlInput.focus();
     }
 
-    if (action === "profile") showToast(currentUser ? currentUser.email : "Not signed in");
+    if (action === "profile") {
+      if (currentUser) showToast(currentUser.email);
+      else showAuth();
+    }
   });
 
   fileInput.addEventListener("change", () => {
@@ -432,8 +449,7 @@
 
   (async () => {
     if (!FridayApi.getToken()) {
-      showAuth();
-      setStatus("Sign in required", "error");
+      enterGuestMode();
       return;
     }
 
@@ -442,8 +458,8 @@
       await finishAuth(result);
     } catch {
       await FridayApi.logout();
-      showAuth("Your session is expired. Please sign in again.");
-      setStatus("Sign in required", "error");
+      enterGuestMode();
+      showToast("Session expired. Friday is open in guest mode.");
     }
   })();
 })();
