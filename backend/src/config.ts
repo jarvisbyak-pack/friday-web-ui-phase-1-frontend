@@ -27,7 +27,10 @@ const envSchema = z.object({
   GEMINI_FALLBACK_MODEL: z.string().min(1).default("gemini-3.7-flash"),
   GITHUB_TOKEN: z.string().optional(),
   GITHUB_API_URL: z.string().url().default("https://api.github.com"),
-  FRIDAY_ALLOW_GITHUB_MUTATIONS: booleanEnv
+  FIRECRAWL_API_KEY: z.string().optional(),
+  FIRECRAWL_API_URL: z.string().url().default("https://api.firecrawl.dev/v2"),
+  FRIDAY_ALLOW_GITHUB_MUTATIONS: booleanEnv,
+  FIRECRAWL_SEARCH_TIMEOUT_MS: z.coerce.number().int().positive().max(60000).default(20000)
 });
 
 export const config = envSchema.parse(process.env);
