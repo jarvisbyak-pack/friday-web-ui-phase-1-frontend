@@ -21,8 +21,8 @@
 </div>
 <div class="sidebar-bottom">
 <div class="status-card"><span class="status-dot"></span><div><strong id="status-text">Connecting…</strong><small id="connection-state">Checking backend</small></div></div>
-<button class="profile" id="profile-button" data-action="profile"><span class="avatar">A</span><span><strong class="profile-name">Not signed in</strong><small class="profile-subtitle">Authentication required</small></span><span>⌄</span></button>
-<button class="profile logout-button" id="logout-button" type="button">Sign out</button>
+<button class="profile" id="profile-button" data-action="profile"><span class="avatar">A</span><span><strong class="profile-name">Guest</strong><small class="profile-subtitle">Sign in to connect</small></span><span>⌄</span></button>
+<button class="profile logout-button" id="logout-button" type="button">Sign in</button>
 </div>
 </aside>
 
@@ -91,7 +91,7 @@
 
 <div class="toast" id="toast" role="status"></div>
 
-<div class="auth-overlay visible" id="auth-overlay">
+<div class="auth-overlay" id="auth-overlay">
 <div class="auth-card">
 <div class="welcome-mark small"><svg viewBox="0 0 48 48"><path d="M24 5a19 19 0 1 0 17 10.4"/><path d="M17 18.5 24 12l7 6.5v9L24 34l-7-6.5z"/><path d="M31 18.5 39 12"/></svg></div>
 <h2 id="auth-mode">Sign in to Friday</h2>
