@@ -40,7 +40,7 @@ export class WebSearchService {
 
     const boundedLimit = Math.min(Math.max(Math.trunc(limit), 1), 10);
     const boundedTimeout = Math.min(Math.max(Math.trunc(timeoutMs), 1000), 60000);
-    const endpoint = new URL("/search", config.FIRECRAWL_API_URL).toString();
+    const endpoint = new URL("search", `${config.FIRECRAWL_API_URL.replace(/\/$/, "")}/`).toString();
 
     const response = await fetch(endpoint, {
       method: "POST",
