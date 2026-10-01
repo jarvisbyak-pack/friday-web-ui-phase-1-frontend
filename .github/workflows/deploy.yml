@@ -16,16 +16,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Validate backend URL
+      - name: Validate backend URL (optional in guest UI mode)
         env:
           FRIDAY_API_BASE_URL: ${{ vars.FRIDAY_API_BASE_URL }}
         run: |
-          test -n "$FRIDAY_API_BASE_URL"
-          case "$FRIDAY_API_BASE_URL" in
-            https://*) ;;
-            *) echo "FRIDAY_API_BASE_URL must be an HTTPS backend origin." >&2; exit 1 ;;
-          esac
-          node -e "new URL(process.env.FRIDAY_API_BASE_URL)"
+          if [ -z "$FRIDAY_API_BASE_URL" ]; then
+            echo "FRIDAY_API_BASE_URL is not configured; deploying UI in guest mode."
+          else
+            case "$FRIDAY_API_BASE_URL" in
+              https://*) ;;
+              *) echo "FRIDAY_API_BASE_URL must be an HTTPS backend origin when configured." >&2; exit 1 ;;
+            esac
+            node -e "new URL(process.env.FRIDAY_API_BASE_URL)"
+          fi
       - name: Generate production runtime configuration
         env:
           FRIDAY_API_BASE_URL: ${{ vars.FRIDAY_API_BASE_URL }}
