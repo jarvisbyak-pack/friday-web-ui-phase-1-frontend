@@ -42,3 +42,39 @@
 body.light .face-mode{background:radial-gradient(800px 600px at 50% 40%,rgba(169,112,255,.18),transparent 60%),#f6f4f9;color:#17151c}
 body.light .face-input-wrap{background:rgba(255,255,255,.9);border-color:rgba(120,75,170,.28)}
 body.light .face-input{color:#17151c}
+
+
+/* Friday character moods — the Face changes expression, energy and interface palette together. */
+.face-mode{
+  background:
+    radial-gradient(900px 650px at 50% 42%,rgba(var(--mood-rgb),.20),transparent 55%),
+    radial-gradient(700px 500px at 12% 100%,rgba(var(--mood-rgb),.10),transparent 65%),
+    #07070b;
+  transition:background .35s ease;
+}
+.face-title-dot{background:var(--mood-accent);box-shadow:0 0 16px rgba(var(--mood-rgb),.95)}
+.face-mood-picker{display:flex;align-items:center;gap:6px;margin:0 0 10px;padding:4px;border:1px solid rgba(var(--mood-rgb),.20);border-radius:999px;background:rgba(255,255,255,.035)}
+.face-mood-option{border:0;background:transparent;color:#8e8994;font-size:10px;padding:7px 11px;border-radius:999px;cursor:pointer;transition:.2s}
+.face-mood-option:hover{color:#fff;background:rgba(255,255,255,.06)}
+.face-mood-option.active{color:#fff;background:rgba(var(--mood-rgb),.18);box-shadow:inset 0 0 0 1px rgba(var(--mood-rgb),.32)}
+.face-mood-state{font-size:10px;color:var(--mood-accent-strong);letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px}
+.face-orb-wrap::before{border-color:rgba(var(--mood-rgb),.22);box-shadow:0 0 90px rgba(var(--mood-rgb),.16)}
+.face-orb-wrap::after{border-color:rgba(var(--mood-rgb),.16)}
+.face-orb{
+  background:radial-gradient(circle at 35% 30%,var(--orb-core) 0 3%,var(--orb-mid) 12%,var(--orb-deep) 50%,#09070f 100%);
+  box-shadow:0 0 34px rgba(var(--mood-rgb),.72),0 0 110px rgba(var(--mood-rgb),.30),inset -16px -18px 35px rgba(0,0,0,.5);
+  transition:background .35s ease,box-shadow .35s ease;
+}
+.face-orb.is-working{box-shadow:0 0 45px rgba(var(--mood-rgb),.92),0 0 135px rgba(var(--mood-rgb),.44),inset -16px -18px 35px rgba(0,0,0,.5)}
+.face-orb.is-error{box-shadow:0 0 42px rgba(var(--mood-rgb),.60),0 0 110px rgba(var(--mood-rgb),.22),inset -16px -18px 35px rgba(0,0,0,.5)}
+.face-wave i{background:linear-gradient(var(--orb-core),var(--orb-mid))}
+.face-input-wrap{border-color:rgba(var(--mood-rgb),.48);box-shadow:0 20px 70px rgba(0,0,0,.35),0 0 35px rgba(var(--mood-rgb),.10)}
+.face-mic{color:var(--mood-accent-strong);border-color:rgba(var(--mood-rgb),.20)}
+body[data-mood="focused"] .face-orb{animation:face-focused 2.3s ease-in-out infinite}
+body[data-mood="alert"] .face-orb{animation:face-alert 1.55s ease-in-out infinite}
+body[data-mood="angry"] .face-orb{animation:face-angry .78s ease-in-out infinite}
+body[data-mood="angry"] .face-wave i{animation-duration:.72s}
+body[data-mood="alert"] .face-wave i{animation-duration:.92s}
+@keyframes face-focused{0%,100%{transform:scale(.985);filter:saturate(1)}50%{transform:scale(1.02);filter:saturate(1.28) brightness(1.06)}}
+@keyframes face-alert{0%,100%{transform:scale(.96);filter:saturate(1.05)}50%{transform:scale(1.055);filter:saturate(1.48) brightness(1.08)}}
+@keyframes face-angry{0%,100%{transform:scale(.93) translateX(0);filter:saturate(1.35) brightness(1.00)}25%{transform:scale(1.07) translateX(-1px);filter:saturate(1.8) brightness(1.05)}75%{transform:scale(1.06) translateX(1px);filter:saturate(1.8) brightness(1.02)}}
