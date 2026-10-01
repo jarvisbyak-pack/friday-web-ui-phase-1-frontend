@@ -30,7 +30,16 @@
 <header class="topbar">
 <button class="icon-button mobile-only" data-action="toggle-sidebar">☰</button>
 <div class="mobile-title">Friday</div>
-<div class="top-actions"><button class="icon-button" data-action="face" aria-label="Open Friday Face">◉</button><button class="icon-button" data-action="toggle-theme" aria-label="Toggle theme">☼</button><button class="icon-button" data-action="settings" aria-label="Settings">⚙</button></div>
+<div class="top-actions"><button class="mood-button" id="mood-button" data-action="mood" aria-label="Change Friday mood" title="Change Friday mood"><span class="mood-swatch" id="mood-swatch"></span><span class="mood-label" id="mood-label">Calm</span><span class="mood-chevron">⌄</span></button><button class="icon-button" data-action="toggle-theme" aria-label="Toggle theme">☼</button><button class="icon-button" data-action="settings" aria-label="Settings">⚙</button></div>
+<div class="mood-popover" id="mood-popover" role="menu" aria-hidden="true">
+  <div class="mood-popover-title">Friday character</div>
+  <button class="mood-option" data-mood="calm" role="menuitem"><span class="mood-option-swatch"></span><span><strong>Calm</strong><small>Composed • steady • helpful</small></span></button>
+  <button class="mood-option" data-mood="focused" role="menuitem"><span class="mood-option-swatch"></span><span><strong>Focused</strong><small>Precise • analytical • locked in</small></span></button>
+  <button class="mood-option" data-mood="alert" role="menuitem"><span class="mood-option-swatch"></span><span><strong>Alert</strong><small>Fast • vigilant • reactive</small></span></button>
+  <button class="mood-option" data-mood="angry" role="menuitem"><span class="mood-option-swatch"></span><span><strong>Angry</strong><small>Intense • forceful • redline</small></span></button>
+  <div class="mood-popover-divider"></div>
+  <button class="mood-face-open" data-action="face" type="button">Open Friday Face →</button>
+</div>
 </header>
 
 <section class="workspace" id="workspace">
@@ -59,6 +68,13 @@
     <button class="face-close" data-action="close-face" aria-label="Close Friday Face">×</button>
   </div>
   <div class="face-center">
+    <div class="face-mood-picker" id="face-mood-picker" role="group" aria-label="Friday character">
+      <button class="face-mood-option" data-mood="calm" type="button">Calm</button>
+      <button class="face-mood-option" data-mood="focused" type="button">Focused</button>
+      <button class="face-mood-option" data-mood="alert" type="button">Alert</button>
+      <button class="face-mood-option" data-mood="angry" type="button">Angry</button>
+    </div>
+    <div class="face-mood-state" id="face-mood-state">Calm • composed</div>
     <div class="face-status" id="face-status">Friday online</div>
     <div class="face-orb-wrap">
       <div class="face-orb" id="face-orb" aria-hidden="true"></div>
@@ -69,7 +85,7 @@
       <input id="face-prompt" class="face-input" type="text" autocomplete="off" placeholder="Talk to Friday…" aria-label="Talk to Friday">
       <button class="face-mic" data-action="voice" type="button" aria-label="Voice input">◉</button>
     </div>
-    <div class="face-hint">Second face • same Friday session • Esc to close</div>
+    <div class="face-hint">Character state changes the whole Friday interface • same session • Esc to close</div>
   </div>
 </div>
 
