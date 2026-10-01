@@ -20,6 +20,7 @@ Phase 2 backend foundation for the Friday web-based AI agent, independent of n8n
 - Authenticated file storage with per-user ownership, size limits, checksums, and agent read/list tools.
 - Controlled code execution with an explicit allowlist and default-off mutation gate.
 - Read-only public web fetching with basic private-network/SSRF protections.
+- Firecrawl-backed public web search with bounded result counts and normalized result metadata.
 - Explicit API and service boundaries for future files, browser, code-execution, and deployment tools.
 
 ## Principles
@@ -82,6 +83,7 @@ The agent registry currently exposes:
 - files.read
 - code.run
 - web.fetch
+- web.search
 
 Set `GITHUB_TOKEN` for GitHub access. Set `FRIDAY_ALLOW_GITHUB_MUTATIONS=true` only when repository mutations are intentionally authorized. The mutation flag defaults to false.
 
