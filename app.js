@@ -335,6 +335,13 @@
     }
   });
 
+  $("#google-auth").addEventListener("click", () => {
+    try { FridayApi.startOAuth("google"); } catch (error) { showAuth(error.message); }
+  });
+  $("#github-auth").addEventListener("click", () => {
+    try { FridayApi.startOAuth("github"); } catch (error) { showAuth(error.message); }
+  });
+
   authSwitch.addEventListener("click", () => {
     authRegisterMode = !authRegisterMode;
     authMode.textContent = authRegisterMode ? "Create your Friday account" : "Sign in to Friday";
