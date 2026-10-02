@@ -73,6 +73,16 @@ const getApiBase = () => {
     return result;
   }
 
+  async function exchangeOAuthCode(code) {
+    const result = await request("/auth/oauth/exchange", { method: "POST", body: JSON.stringify({ code }) });
+    setToken(result.token);
+    return result;
+  }
+
+  function startOAuth(provider) {
+    window.location.assign(getApiBase() + "/auth/" + encodeURIComponent(provider) + "/start");
+  }
+
   async function me() {
     return request("/auth/me");
   }
@@ -192,7 +202,7 @@ const getApiBase = () => {
 
   window.FridayApi = {
     getApiBase, setApiBase, getToken, getConversationId, setConversationId,
-    health, register, login, me, logout,
+    health, register, login, exchangeOAuthCode, startOAuth, me, logout,
     listConversations, createConversation, listMessages, addMessage,
     createAgentTask, getTask, readTaskEvents, uploadFile
   };
