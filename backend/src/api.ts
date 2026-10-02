@@ -186,7 +186,7 @@ export function createApi() {
       res.status(404).send("OAuth provider not found.");
       return;
     }
-    const frontend = config.FRONTEND_ORIGIN.split(",")[0]!.trim().replace(/\/$/, "");
+    const frontend = config.OAUTH_FRONTEND_ORIGIN.replace(/\/$/, "");
     const fail = (message: string) => res.redirect(frontend + "/?oauth_error=" + encodeURIComponent(message));
     const code = typeof req.query.code === "string" ? req.query.code : "";
     const state = typeof req.query.state === "string" ? req.query.state : "";
