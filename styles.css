@@ -197,3 +197,5 @@ body.light .app-shell{
 }
 .mood-face-open:hover{background:rgba(var(--mood-rgb),.09)}
 body.light .mood-popover{background:rgba(255,255,255,.97)}
+
+.oauth-buttons{display:grid;gap:10px;margin:18px 0 14px}.oauth-button{width:100%;padding:12px 14px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.06);color:inherit;font:inherit;font-weight:600;cursor:pointer}.oauth-button:hover{background:rgba(255,255,255,.1)}.auth-divider{display:flex;align-items:center;gap:10px;margin:12px 0;color:rgba(255,255,255,.45);font-size:12px}.auth-divider:before,.auth-divider:after{content:"";height:1px;flex:1;background:rgba(255,255,255,.1)}
