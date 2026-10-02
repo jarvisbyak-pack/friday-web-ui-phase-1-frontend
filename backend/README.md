@@ -28,7 +28,7 @@ Phase 2 backend foundation for the Friday web-based AI agent, independent of n8n
 - Friday backend is independent of n8n.
 - Long-running work uses tasks and workers rather than holding an HTTP request open.
 - AI providers and tools are implemented behind explicit interfaces.
-- Runtime verification remains a separate step and must not be assumed from source-level checks.
+- Runtime verification is performed against the deployed web backend; source-level checks alone are not considered sufficient.
 - Protected APIs require a Bearer session token.
 - GitHub mutations are disabled by default.
 
@@ -87,4 +87,4 @@ The agent registry currently exposes:
 
 Set `GITHUB_TOKEN` for GitHub access. Set `FRIDAY_ALLOW_GITHUB_MUTATIONS=true` only when repository mutations are intentionally authorized. The mutation flag defaults to false.
 
-Runtime verification of registration, login, protected routes, migrations, agent execution, GitHub access, and worker behavior remains pending until the local PC is available.
+Production verification must be performed against the deployed backend and PostgreSQL environment; Friday does not depend on a local PC or local build for operation.
