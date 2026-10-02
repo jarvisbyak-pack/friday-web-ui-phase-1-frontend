@@ -9,7 +9,8 @@ const migrationFiles = [
   "002_conversations_memory_events.sql",
   "003_auth.sql",
   "004_files.sql",
-  "005_phase1_database_architecture.sql"
+  "005_phase1_database_architecture.sql",
+  "006_oauth_identities.sql"
 ];
 
 async function ensureMigrationLedger(): Promise<void> {
