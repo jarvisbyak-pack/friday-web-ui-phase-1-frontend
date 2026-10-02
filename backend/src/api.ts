@@ -160,7 +160,7 @@ export function createApi() {
     }
   });
 
-  app.get("/api/auth/:provider", async (req, res) => {
+  app.get("/api/auth/:provider/start", async (req, res) => {
     const provider = req.params.provider as OAuthProvider;
     if (provider !== "google" && provider !== "github") {
       res.status(404).json({ error: { code: "OAUTH_PROVIDER_NOT_FOUND", message: "OAuth provider not found." } });
