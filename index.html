@@ -21,8 +21,8 @@
 </div>
 <div class="sidebar-bottom">
 <div class="status-card"><span class="status-dot"></span><div><strong id="status-text">Connecting…</strong><small id="connection-state">Checking backend</small></div></div>
-<button class="profile" id="profile-button" data-action="profile"><span class="avatar">A</span><span><strong class="profile-name">Guest</strong><small class="profile-subtitle">Sign in to connect</small></span><span>⌄</span></button>
-<button class="profile logout-button" id="logout-button" type="button">Sign in</button>
+<button class="profile" id="profile-button" data-action="profile"><span class="avatar">A</span><span><strong class="profile-name">Signed out</strong><small class="profile-subtitle">Authentication required</small></span><span>⌄</span></button>
+<button class="profile logout-button" id="logout-button" type="button">Sign out</button>
 </div>
 </aside>
 
@@ -95,7 +95,8 @@
 <div class="auth-card">
 <div class="welcome-mark small"><svg viewBox="0 0 48 48"><path d="M24 5a19 19 0 1 0 17 10.4"/><path d="M17 18.5 24 12l7 6.5v9L24 34l-7-6.5z"/><path d="M31 18.5 39 12"/></svg></div>
 <h2 id="auth-mode">Sign in to Friday</h2>
-<p>Connect this web UI to your Friday backend.</p>
+<p>Sign in to access your authenticated Friday workspace.</p>
+<div class="oauth-buttons"><button class="oauth-button" id="google-auth" type="button">Continue with Google</button><button class="oauth-button" id="github-auth" type="button">Continue with GitHub</button></div><div class="auth-divider"><span>or</span></div>
 <form id="auth-form">
 <label>Email<input id="auth-email" type="email" autocomplete="email" required></label>
 <label>Password<input id="auth-password" type="password" autocomplete="current-password" minlength="8" required></label>
