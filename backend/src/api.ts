@@ -13,6 +13,9 @@ import { TaskService } from "./tasks/task-service.js";
 import { config } from "./config.js";
 import { createDefaultToolRegistry } from "./tools/index.js";
 import { checkDatabase } from "./db/pool.js";
+import { OAuthService, type OAuthProvider } from "./auth/oauth.js";
+import { googleAuthorizationUrl, exchangeGoogleCode } from "./auth/providers/google.js";
+import { githubAuthorizationUrl, exchangeGithubCode } from "./auth/providers/github.js";
 
 const taskRequestSchema = z.object({
   type: z.string().trim().min(1).max(200),
@@ -75,6 +78,7 @@ function bearerToken(req: Request): string {
 export function createApi() {
   const app = express();
   const auth = new AuthService();
+  const oauth = new OAuthService(auth);
   const requireAuthentication = requireAuth(auth);
   const taskService = new TaskService(new PostgresTaskRepository());
   const aiService = new AiService();
@@ -153,6 +157,62 @@ export function createApi() {
       }
       console.error("Login failed:", error);
       res.status(503).json({ error: { code: "AUTH_UNAVAILABLE", message: "Authentication service unavailable." } });
+    }
+  });
+
+  app.get("/api/auth/:provider", async (req, res) => {
+    const provider = req.params.provider as OAuthProvider;
+    if (provider !== "google" && provider !== "github") {
+      res.status(404).json({ error: { code: "OAUTH_PROVIDER_NOT_FOUND", message: "OAuth provider not found." } });
+      return;
+    }
+    if (!oauth.isConfigured(provider)) {
+      res.status(503).json({ error: { code: "OAUTH_NOT_CONFIGURED", message: provider + " sign-in is not configured on this backend." } });
+      return;
+    }
+    try {
+      const state = await oauth.createState(provider);
+      const url = provider === "google" ? googleAuthorizationUrl(state) : githubAuthorizationUrl(state);
+      res.redirect(url);
+    } catch (error) {
+      console.error("OAuth start failed:", error);
+      res.status(503).json({ error: { code: "OAUTH_UNAVAILABLE", message: "OAuth service unavailable." } });
+    }
+  });
+
+  app.get("/api/auth/:provider/callback", async (req, res) => {
+    const provider = req.params.provider as OAuthProvider;
+    if (provider !== "google" && provider !== "github") {
+      res.status(404).send("OAuth provider not found.");
+      return;
+    }
+    const frontend = config.FRONTEND_ORIGIN.split(",")[0]!.trim().replace(/\/$/, "");
+    const fail = (message: string) => res.redirect(frontend + "/?oauth_error=" + encodeURIComponent(message));
+    const code = typeof req.query.code === "string" ? req.query.code : "";
+    const state = typeof req.query.state === "string" ? req.query.state : "";
+    if (!code || !state) { fail("OAuth callback was missing required parameters."); return; }
+    try {
+      await oauth.consumeState(provider, state);
+      const identity = provider === "google" ? await exchangeGoogleCode(code) : await exchangeGithubCode(code);
+      const userId = await oauth.signInWithIdentity(provider, identity.subject, identity.email);
+      const exchangeCode = await oauth.createExchangeCode(userId);
+      res.redirect(frontend + "/?oauth_code=" + encodeURIComponent(exchangeCode));
+    } catch (error) {
+      console.error("OAuth callback failed:", error);
+      fail(error instanceof Error ? error.message : "OAuth sign-in failed.");
+    }
+  });
+
+  app.post("/api/auth/oauth/exchange", async (req, res) => {
+    const code = typeof req.body?.code === "string" ? req.body.code.trim() : "";
+    if (!code) {
+      res.status(400).json({ error: { code: "INVALID_REQUEST", message: "OAuth exchange code is required." } });
+      return;
+    }
+    try {
+      res.json(await oauth.exchangeCode(code));
+    } catch (error) {
+      res.status(401).json({ error: { code: "INVALID_OAUTH_CODE", message: error instanceof Error ? error.message : "Invalid OAuth code." } });
     }
   });
 
