@@ -16,19 +16,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Validate backend URL (optional in guest UI mode)
+      - name: Validate production backend URL (required)
         env:
           FRIDAY_API_BASE_URL: ${{ vars.FRIDAY_API_BASE_URL }}
         run: |
           if [ -z "$FRIDAY_API_BASE_URL" ]; then
-            echo "FRIDAY_API_BASE_URL is not configured; deploying UI in guest mode."
-          else
-            case "$FRIDAY_API_BASE_URL" in
-              https://*) ;;
-              *) echo "FRIDAY_API_BASE_URL must be an HTTPS backend origin when configured." >&2; exit 1 ;;
-            esac
-            node -e "new URL(process.env.FRIDAY_API_BASE_URL)"
+            echo "FRIDAY_API_BASE_URL is required for production authentication." >&2
+            exit 1
           fi
+          case "$FRIDAY_API_BASE_URL" in
+            https://*) ;;
+            *) echo "FRIDAY_API_BASE_URL must be an HTTPS backend origin." >&2; exit 1 ;;
+          esac
+          node -e "new URL(process.env.FRIDAY_API_BASE_URL)"
       - name: Generate production runtime configuration
         env:
           FRIDAY_API_BASE_URL: ${{ vars.FRIDAY_API_BASE_URL }}
@@ -36,7 +36,12 @@ jobs:
           python3 - <<'PY'
           import json, os
           value = os.environ["FRIDAY_API_BASE_URL"].rstrip("/")
-          with open("runtime-config.js", "w", encoding="utf-8") as f:
+          import pathlib
+          site = pathlib.Path("_site")
+          site.mkdir()
+          for name in ["index.html", "api.js", "app.js", "face.js", "styles.css", "face.css"]:
+              (site / name).write_bytes(pathlib.Path(name).read_bytes())
+          with open(site / "runtime-config.js", "w", encoding="utf-8") as f:
               f.write("window.FRIDAY_CONFIG = " + json.dumps({"API_BASE_URL": value}) + ";\n")
           PY
       - name: Configure GitHub Pages
@@ -44,7 +49,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: "."
+          path: "_site"
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
