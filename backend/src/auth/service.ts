@@ -27,6 +27,9 @@ function hashToken(token: string): string {
 }
 
 export class AuthService {
+  createUnusablePasswordHash(): string {
+    return hashPassword(randomBytes(48).toString("base64url"));
+  }
   async register(email: string, password: string): Promise<{ id: string; email: string }> {
     const normalizedEmail = email.trim().toLowerCase();
     if (password.length < 8) throw new Error("Password must be at least 8 characters.");
