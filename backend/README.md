@@ -14,6 +14,7 @@ Phase 2 backend foundation for the Friday web-based AI agent, independent of n8n
 - Database-backed task/agent execution events.
 - Server-Sent Events endpoint for live task progress.
 - User authentication with hashed passwords and revocable database sessions.
+- Google and GitHub OAuth with state validation and one-time exchange codes.
 - User ownership checks for conversations, memories, and tasks.
 - GitHub read tools for repositories, files, and code search.
 - GitHub mutation tools for branches, files, and pull requests, protected by an explicit feature flag.
@@ -51,6 +52,11 @@ The API defaults to port 3001.
 - GET /api/ready
 - POST /api/auth/register
 - POST /api/auth/login
+- GET /api/auth/google/start
+- GET /api/auth/github/start
+- GET /api/auth/google/callback
+- GET /api/auth/github/callback
+- POST /api/auth/oauth/exchange
 
 ### Authenticated
 - GET /api/auth/me
