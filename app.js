@@ -72,17 +72,6 @@
     authError.classList.remove("visible");
   };
 
-  const enterGuestMode = () => {
-    currentUser = null;
-    hideAuth();
-    setStatus("Guest mode", "online");
-    connectionState.textContent = "UI preview • sign in for backend";
-    connectionState.className = "";
-    $(".profile-name").textContent = "Guest";
-    $(".profile-subtitle").textContent = "Sign in to connect";
-    logoutButton.textContent = "Sign in";
-  };
-
   const resetConversationView = () => {
     conversation.innerHTML = "";
     conversation.classList.remove("visible");
@@ -377,7 +366,7 @@
     currentUser = null;
     currentConversationId = "";
     resetConversationView();
-    enterGuestMode();
+    showAuth("Signed out. Sign in to continue.");
   });
 
   document.addEventListener("click", event => {
@@ -448,18 +437,36 @@
   apiUrlInput.value = (FridayApi.getApiBase().replace(/\/api$/, "") || window.location.origin);
 
   (async () => {
-    if (!FridayApi.getToken()) {
-      enterGuestMode();
+    const params = new URLSearchParams(window.location.search);
+    const oauthCode = params.get("oauth_code");
+    const oauthError = params.get("oauth_error");
+    if (oauthCode) {
+      try {
+        const result = await FridayApi.exchangeOAuthCode(oauthCode);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        await finishAuth(result);
+        return;
+      } catch (error) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        showAuth(error.message);
+        return;
+      }
+    }
+    if (oauthError) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      showAuth(oauthError);
       return;
     }
-
+    if (!FridayApi.getToken()) {
+      showAuth();
+      return;
+    }
     try {
       const result = await FridayApi.me();
       await finishAuth(result);
     } catch {
       await FridayApi.logout();
-      enterGuestMode();
-      showToast("Session expired. Friday is open in guest mode.");
+      showAuth("Your session expired. Please sign in again.");
     }
   })();
 })();
