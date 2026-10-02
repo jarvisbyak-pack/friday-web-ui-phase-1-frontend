@@ -80,7 +80,7 @@ export class WebSearchService {
           ? { markdown: item.markdown.trim() }
           : {})
       }))
-      .filter(item => item.url && /^https?:\\/\\//i.test(item.url))
+      .filter(item => item.url && /^https?:\/\//i.test(item.url))
       .slice(0, boundedLimit);
 
     return { query: normalizedQuery, results };
