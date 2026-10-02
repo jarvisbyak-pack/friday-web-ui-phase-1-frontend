@@ -39,7 +39,7 @@ jobs:
           test -s styles.css
           test -s face.css
           test -s face.js
-          ! grep -RniE "guest mode|open in guest|UI preview.*sign in" app.js index.html .github/workflows
+          ! grep -RniE "guest mode|open in guest|UI preview.*sign in" app.js index.html
       - name: Require production API configuration
         if: github.event_name != 'pull_request'
         env:
