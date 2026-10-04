@@ -477,3 +477,102 @@
     }
   })();
 })();
+
+/* === Friday operations center controller === */
+(() => {
+  const shell=document.querySelector(".app-shell");
+  const panel=document.getElementById("activity-panel");
+  const reopen=document.getElementById("activity-reopen");
+  const running=document.getElementById("running-tasks");
+  const runningCount=document.getElementById("running-count");
+  const taskOverlay=document.getElementById("task-view-overlay");
+  const taskLog=document.getElementById("task-log");
+  const taskTitle=document.getElementById("task-view-title");
+  const taskSubtitle=document.getElementById("task-view-subtitle");
+  const taskProgress=document.getElementById("task-progress-bar");
+  const taskProgressValue=document.getElementById("task-progress-value");
+  const taskFooter=document.getElementById("task-footer-state");
+  const taskTool=document.getElementById("task-tool");
+
+  const setActivity=(hidden)=>{
+    shell.classList.toggle("activity-hidden",hidden);
+    localStorage.setItem("friday_activity_hidden",hidden?"1":"0");
+  };
+
+  const renderEmpty=()=>{
+    if(!running.children.length){
+      running.innerHTML='<div class="activity-empty"><span class="activity-empty-orb"></span><strong>No active tasks</strong><small>Friday will show live work here.</small></div>';
+    }
+    runningCount.textContent=running.children.length===1 && running.firstElementChild?.classList.contains("activity-empty")?"0":String(running.children.length);
+  };
+
+  const openTask=(title="Fix authentication bug",state="Running · GitHub API",progress=68,tool="GitHub API",log="08:13:21  task accepted\n08:13:24  planning execution\n08:13:31  GitHub API → repository\n08:13:38  modifying project files")=>{
+    taskTitle.textContent=title; taskSubtitle.textContent=state; taskTool.textContent=tool;
+    taskProgress.style.width=Math.max(0,Math.min(100,progress))+"%"; taskProgressValue.textContent=Math.round(progress)+"%";
+    taskFooter.textContent=state; taskLog.textContent=log;
+    taskOverlay.classList.add("visible"); taskOverlay.setAttribute("aria-hidden","false");
+  };
+  const closeTask=()=>{taskOverlay.classList.remove("visible");taskOverlay.setAttribute("aria-hidden","true")};
+
+  const updateRunning=(text)=>{
+    const normalized=(text||"").toLowerCase();
+    if(!text || /completed|failed|connection\/error/.test(normalized)){
+      running.innerHTML="";
+      renderEmpty();
+      return;
+    }
+    const label=text.replace(/^Task\s+[a-z0-9]+\s*[•·-]\s*/i,"").trim()||"Working";
+    let card=document.getElementById("live-task-card");
+    if(!card){
+      running.innerHTML="";
+      card=document.createElement("button");
+      card.id="live-task-card"; card.className="activity-task running";
+      card.dataset.taskView="live"; running.appendChild(card);
+    }
+    const busyMatch=label.match(/(\d{1,3})%/);
+    const pct=busyMatch?Number(busyMatch[1]):68;
+    const clean=label.replace(/\d{1,3}%/,"").trim();
+    card.innerHTML='<span class="task-status-icon">●</span><span class="task-copy"><strong>'+escapeActivity(clean||"Working on your request")+'</strong><small>'+pct+'% · Live execution</small><span class="activity-task-progress"><span style="width:'+pct+'%"></span></span></span><span class="task-arrow">›</span>';
+    runningCount.textContent="1";
+  };
+  const escapeActivity=v=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+
+  document.addEventListener("click",event=>{
+    const toggle=event.target.closest('[data-action="toggle-activity"]');
+    if(toggle){event.preventDefault();setActivity(!shell.classList.contains("activity-hidden"));return;}
+    const close=event.target.closest('[data-action="close-task-view"]');
+    if(close){closeTask();return;}
+    const task=event.target.closest("[data-task-view]");
+    if(task){
+      const type=task.dataset.taskView;
+      if(type==="approval") openTask("Deployment approval","Waiting · Approval required",82,"Deployment","Waiting for user approval…");
+      else if(type==="ci") openTask("CI failure fixed","Completed · 6/6 steps passed",100,"GitHub Actions","✓ lint\n✓ typecheck\n✓ unit tests\n✓ build\n✓ integration\n✓ deployment check");
+      else if(type==="n8n") openTask("Webhook connection","Failed · Retry available",42,"Webhook","POST /webhook → connection refused\nRetry is available.");
+      else openTask();
+      return;
+    }
+    const nav=event.target.closest("[data-action="workspace-nav"]");
+    if(nav){
+      document.querySelectorAll(".nav-item[data-nav]").forEach(n=>n.classList.toggle("active",n===nav));
+      const label=(nav.querySelector("span:nth-child(2)")?.textContent||"Workspace");
+      if(nav.dataset.nav==="activity") setActivity(false);
+      else if(nav.dataset.nav==="tasks") setActivity(false);
+      else if(typeof showToast==="function") showToast(label+" workspace is ready for the next phase.");
+    }
+  });
+
+  const state=document.getElementById("task-state");
+  if(state){
+    new MutationObserver(()=>updateRunning(state.textContent.trim())).observe(state,{childList:true,characterData:true,subtree:true});
+  }
+
+  taskOverlay?.addEventListener("click",e=>{if(e.target===taskOverlay)closeTask()});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeTask()});
+
+  const emptyStyle=document.createElement("style");
+  emptyStyle.textContent='.activity-empty{padding:18px 10px;text-align:center;border:1px dashed var(--line);border-radius:11px;color:var(--dim)}.activity-empty strong{display:block;font-size:9px;color:var(--text);margin-top:8px}.activity-empty small{display:block;font-size:8px;margin-top:4px}.activity-empty-orb{display:block;width:20px;height:20px;margin:auto;border-radius:50%;border:1px solid rgba(var(--mood-rgb),.3);box-shadow:0 0 18px rgba(var(--mood-rgb),.15)}';
+  document.head.appendChild(emptyStyle);
+
+  renderEmpty();
+  setActivity(localStorage.getItem("friday_activity_hidden")==="1");
+})();
