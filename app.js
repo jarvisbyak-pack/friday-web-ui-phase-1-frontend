@@ -551,7 +551,7 @@
       else openTask();
       return;
     }
-    const nav=event.target.closest("[data-action="workspace-nav"]");
+    const nav=event.target.closest('[data-action="workspace-nav"]');
     if(nav){
       document.querySelectorAll(".nav-item[data-nav]").forEach(n=>n.classList.toggle("active",n===nav));
       const label=(nav.querySelector("span:nth-child(2)")?.textContent||"Workspace");
