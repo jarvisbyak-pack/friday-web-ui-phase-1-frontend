@@ -390,7 +390,8 @@
     if (!actionElement) return;
     const action = actionElement.dataset.action;
 
-    if (action === "toggle-sidebar") sidebar.classList.toggle("open");
+    if (action === "toggle-sidebar") { if (window.matchMedia("(min-width: 801px)").matches) sidebar.closest(".app-shell").classList.toggle("sidebar-collapsed"); else sidebar.classList.toggle("open"); }
+    if (action === "reopen-sidebar") sidebar.closest(".app-shell").classList.remove("sidebar-collapsed");
 
     if (action === "new-chat" || action === "home") {
       currentConversationId = "";
