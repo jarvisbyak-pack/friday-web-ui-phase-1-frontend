@@ -530,9 +530,9 @@
       card.dataset.taskView="live"; running.appendChild(card);
     }
     const busyMatch=label.match(/(\d{1,3})%/);
-    const pct=busyMatch?Number(busyMatch[1]):68;
+    const pct=busyMatch?Number(busyMatch[1]):null;
     const clean=label.replace(/\d{1,3}%/,"").trim();
-    card.innerHTML='<span class="task-status-icon">●</span><span class="task-copy"><strong>'+escapeActivity(clean||"Working on your request")+'</strong><small>'+pct+'% · Live execution</small><span class="activity-task-progress"><span style="width:'+pct+'%"></span></span></span><span class="task-arrow">›</span>';
+    card.innerHTML='<span class="task-status-icon">●</span><span class="task-copy"><strong>'+escapeActivity(clean||"Working on your request")+'</strong><small>'+(pct===null?"Live execution":pct+"% · Live execution")+'</small>'+(pct===null?"":'<span class="activity-task-progress"><span style="width:'+pct+'%"></span></span>')+'</span><span class="task-arrow">›</span>';
     runningCount.textContent="1";
   };
   const escapeActivity=v=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
