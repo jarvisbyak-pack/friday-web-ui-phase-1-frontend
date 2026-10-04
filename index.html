@@ -14,11 +14,19 @@
 <aside class="sidebar" id="sidebar">
 <div class="brand-row"><button class="brand" aria-label="Friday home" data-action="home"><span class="brand-mark"><svg viewBox="0 0 48 48"><path d="M24 5a19 19 0 1 0 17 10.4"/><path d="M17 18.5 24 12l7 6.5v9L24 34l-7-6.5z"/><path d="M31 18.5 39 12"/></svg></span><span>Friday</span></button><button class="icon-button desktop-only" data-action="toggle-sidebar">‹</button></div>
 <button class="new-chat" data-action="new-chat"><span>＋</span><span>New Chat</span><kbd>⌘ K</kbd></button>
-<nav class="primary-nav" aria-label="Primary"><button class="nav-item active" data-action="home"><span class="nav-icon">◌</span>Chat</button><button class="nav-item" data-action="placeholder"><span class="nav-icon">⌘</span>Projects</button><button class="nav-item" data-action="placeholder"><span class="nav-icon">◇</span>Tools</button></nav>
+<nav class="primary-nav" aria-label="Primary">
+<button class="nav-item active" data-nav="chat" data-action="home"><span class="nav-icon">◌</span><span>Chat</span></button>
+<button class="nav-item" data-nav="projects" data-action="workspace-nav"><span class="nav-icon">⌘</span><span>Projects</span></button>
+<button class="nav-item" data-nav="tasks" data-action="workspace-nav"><span class="nav-icon">◈</span><span>Tasks</span><span class="nav-badge">2</span></button>
+<button class="nav-item" data-nav="files" data-action="workspace-nav"><span class="nav-icon">◇</span><span>Files</span></button>
+<button class="nav-item" data-nav="github" data-action="workspace-nav"><span class="nav-icon">◐</span><span>GitHub</span></button>
+<button class="nav-item" data-nav="activity" data-action="toggle-activity"><span class="nav-icon">◌</span><span>Activity</span><span class="live-pulse"></span></button>
+</nav>
 <div class="history">
 <div class="section-label">Recent <span>⌄</span></div>
 <div class="section-label today">Today <span>⌄</span></div>
 </div>
+<div class="sidebar-settings"><button class="nav-item settings-nav" data-action="settings"><span class="nav-icon">⚙</span><span>Settings</span></button></div>
 <div class="sidebar-bottom">
 <div class="status-card"><span class="status-dot"></span><div><strong id="status-text">Connecting…</strong><small id="connection-state">Checking backend</small></div></div>
 <button class="profile" id="profile-button" data-action="profile"><span class="avatar">A</span><span><strong class="profile-name">Signed out</strong><small class="profile-subtitle">Authentication required</small></span><span>⌄</span></button>
@@ -30,7 +38,7 @@
 <header class="topbar">
 <button class="icon-button mobile-only" data-action="toggle-sidebar">☰</button>
 <div class="mobile-title">Friday</div>
-<div class="top-actions"><button class="mood-button" id="mood-button" data-action="mood" aria-label="Change Friday mood" title="Change Friday mood"><span class="mood-swatch" id="mood-swatch"></span><span class="mood-label" id="mood-label">Calm</span><span class="mood-chevron">⌄</span></button><button class="icon-button" data-action="toggle-theme" aria-label="Toggle theme">☼</button><button class="icon-button" data-action="settings" aria-label="Settings">⚙</button></div>
+<div class="top-actions"><button class="activity-top-toggle" data-action="toggle-activity" title="Friday Activity"><span class="live-pulse"></span>Activity</button><button class="mood-button" id="mood-button" data-action="mood" aria-label="Change Friday mood" title="Change Friday mood"><span class="mood-swatch" id="mood-swatch"></span><span class="mood-label" id="mood-label">Calm</span><span class="mood-chevron">⌄</span></button><button class="icon-button" data-action="toggle-theme" aria-label="Toggle theme">☼</button><button class="icon-button" data-action="settings" aria-label="Settings">⚙</button></div>
 <div class="mood-popover" id="mood-popover" role="menu" aria-hidden="true">
   <div class="mood-popover-title">Friday character</div>
   <button class="mood-option" data-mood="calm" role="menuitem"><span class="mood-option-swatch"></span><span><strong>Calm</strong><small>Composed • steady • helpful</small></span></button>
@@ -58,6 +66,46 @@
 <p class="composer-note">Friday is an agent interface. Actions that change your projects will require appropriate authorization.</p>
 </form>
 </section>
+<aside class="activity-panel" id="activity-panel" aria-label="Friday Activity">
+  <div class="activity-header">
+    <div><span class="activity-kicker"><span class="activity-live-dot"></span>LIVE OPERATIONS</span><h2>Friday Activity</h2></div>
+    <button class="activity-close" data-action="toggle-activity" aria-label="Hide Friday Activity">→</button>
+  </div>
+  <div class="activity-scroll">
+    <section class="activity-section active-section">
+      <div class="activity-section-title"><span>RUNNING</span><span class="activity-count" id="running-count">0</span></div>
+      <div id="running-tasks" class="activity-list"></div>
+    </section>
+    <section class="activity-section">
+      <div class="activity-section-title"><span>WAITING</span><span class="activity-count">1</span></div>
+      <button class="activity-task waiting" data-task-view="approval"><span class="task-status-icon">◷</span><span class="task-copy"><strong>Deployment approval</strong><small>Waiting for your approval</small></span><span class="task-arrow">›</span></button>
+    </section>
+    <section class="activity-section">
+      <div class="activity-section-title"><span>RECENT</span></div>
+      <button class="activity-task completed" data-task-view="ci"><span class="task-status-icon">✓</span><span class="task-copy"><strong>CI failure fixed</strong><small>6/6 steps passed · 4m ago</small></span><span class="task-arrow">›</span></button>
+      <button class="activity-task failed" data-task-view="n8n"><span class="task-status-icon">!</span><span class="task-copy"><strong>Webhook connection</strong><small>Retry available · 18m ago</small></span><span class="task-arrow">›</span></button>
+    </section>
+  </div>
+  <button class="activity-all" data-action="workspace-nav" data-nav="tasks">View all tasks <span>↗</span></button>
+</aside>
+<button class="activity-reopen" id="activity-reopen" data-action="toggle-activity" aria-label="Show Friday Activity"><span class="reopen-dot"></span><span>Activity</span><span>‹</span></button>
+
+<div class="task-view-overlay" id="task-view-overlay" aria-hidden="true">
+  <div class="task-view">
+    <header class="task-view-header"><div><span class="activity-kicker"><span class="activity-live-dot"></span>TASK DETAILS</span><h2 id="task-view-title">Fix authentication bug</h2><p id="task-view-subtitle">Running · GitHub API</p></div><button class="icon-button" data-action="close-task-view">×</button></header>
+    <div class="task-progress-large"><div class="task-progress-track"><span id="task-progress-bar"></span></div><strong id="task-progress-value">68%</strong></div>
+    <div class="task-view-grid">
+      <section class="task-card"><div class="task-card-label">EXECUTION</div><div id="task-timeline" class="task-timeline">
+        <div class="timeline-step done"><span>✓</span><div><strong>Understand</strong><small>Request analyzed</small></div></div>
+        <div class="timeline-step done"><span>✓</span><div><strong>Plan</strong><small>Execution plan created</small></div></div>
+        <div class="timeline-step active"><span>●</span><div><strong>Modify</strong><small>Editing project files</small></div></div>
+        <div class="timeline-step"><span>○</span><div><strong>Test</strong><small>Waiting to run tests</small></div></div>
+      </div></section>
+      <section class="task-card"><div class="task-card-label">TOOLS & OUTPUT</div><div class="task-metadata"><div><span>Current tool</span><strong id="task-tool">GitHub API</strong></div><div><span>Files changed</span><strong>3</strong></div><div><span>Artifacts</span><strong>2</strong></div></div><div class="task-log" id="task-log">Ready for execution logs…</div></section>
+    </div>
+    <footer class="task-view-footer"><span id="task-footer-state">Friday is working</span><button class="secondary-button" data-action="close-task-view">Close</button><button class="primary-button">Open result</button></footer>
+  </div>
+</div>
 </main>
 </div>
 
