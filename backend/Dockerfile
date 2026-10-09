@@ -7,6 +7,7 @@ RUN npm install
 
 COPY tsconfig.json ./
 COPY src ./src
+COPY migrations ./migrations
 
 RUN npm run build && npm prune --omit=dev
 
