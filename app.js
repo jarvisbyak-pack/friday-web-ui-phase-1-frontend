@@ -163,9 +163,11 @@
       const health = await FridayApi.health();
       connectionState.textContent = health.ok ? "Backend connected" : "Backend unavailable";
       connectionState.className = health.ok ? "connected" : "error";
+      setStatus(currentUser ? "Friday online" : health.ok ? "Sign-in required" : "Backend unavailable", health.ok ? "online" : "error");
     } catch {
       connectionState.textContent = "Backend unavailable";
       connectionState.className = "error";
+      setStatus("Backend unavailable", "error");
     }
   };
 
