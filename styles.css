@@ -203,7 +203,11 @@ body.light .mood-popover{background:rgba(255,255,255,.97)}
 
 /* === Friday three-zone operations workspace === */
 :root{--activity-w:330px;--sidebar-w:248px;--glass:rgba(18,18,24,.72)}
-.app-shell{grid-template-columns:var(--sidebar-w) minmax(0,1fr) var(--activity-w);transition:grid-template-columns .28s ease}
+/* Desktop must use Grid for the three-column layout. The original flex layout made the added sidebars fight for width. */
+.app-shell{display:grid;grid-template-columns:var(--sidebar-w) minmax(0,1fr) var(--activity-w);align-items:stretch;transition:grid-template-columns .28s ease}
+.app-shell>.sidebar{grid-column:1;grid-row:1;min-width:0}
+.app-shell>.main{grid-column:2;grid-row:1;min-width:0}
+.app-shell>.activity-panel{grid-column:3;grid-row:1;min-width:0}
 .sidebar{width:var(--sidebar-w);transition:transform .28s ease,width .28s ease}
 .main{min-width:0;position:relative}
 .activity-panel{grid-column:3;grid-row:1;position:relative;min-width:0;border-left:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.012)),rgba(9,9,13,.62);backdrop-filter:blur(24px);display:flex;flex-direction:column;min-height:100vh;z-index:12}
@@ -258,3 +262,10 @@ body.light .activity-panel{background:rgba(248,247,250,.82)}body.light .task-vie
 
 /* Operational task drawer: opens from Friday Activity without covering the workspace. */
 @media(max-width:800px){.task-view-overlay{width:min(100vw,360px)}.task-view-header{padding:17px}.task-view-grid{grid-template-columns:1fr}.task-view-footer,.task-progress-large{padding-left:17px;padding-right:17px}}
+
+/* Keep sidebar collapse and activity collapse in sync with the desktop grid tracks. */
+@media(min-width:801px){
+  .app-shell.sidebar-collapsed{grid-template-columns:72px minmax(0,1fr) var(--activity-w)}
+  .app-shell.activity-hidden.sidebar-collapsed{grid-template-columns:72px minmax(0,1fr)}
+  .app-shell.sidebar-collapsed>.sidebar{width:auto;min-width:0}
+}
