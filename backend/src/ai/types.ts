@@ -15,6 +15,8 @@ export interface ToolCall {
   id: string;
   name: string;
   input: unknown;
+  /** Gemini thought signature that must be preserved when replaying a function call. */
+  thoughtSignature?: string;
 }
 
 export interface ToolResult {
