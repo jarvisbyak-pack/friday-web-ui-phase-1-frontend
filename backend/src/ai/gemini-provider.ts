@@ -2,6 +2,7 @@ import type { AiProvider, GenerateRequest, GenerateResponse, ToolCall } from "./
 
 type GeminiPart = {
   text?: string;
+  thoughtSignature?: string;
   functionCall?: { name?: string; args?: Record<string, unknown> };
   functionResponse?: { name?: string; response?: Record<string, unknown> };
 };
@@ -48,7 +49,8 @@ export class GeminiProvider implements AiProvider {
                   args: call.input && typeof call.input === "object"
                     ? call.input as Record<string, unknown>
                     : {}
-                }
+                },
+                ...(call.thoughtSignature ? { thoughtSignature: call.thoughtSignature } : {})
               }))
             ]
           };
@@ -120,7 +122,8 @@ export class GeminiProvider implements AiProvider {
         toolCalls.push({
           id: `${part.functionCall.name}-${index}-${Date.now()}`,
           name: part.functionCall.name,
-          input: part.functionCall.args ?? {}
+          input: part.functionCall.args ?? {},
+          ...(part.thoughtSignature ? { thoughtSignature: part.thoughtSignature } : {})
         });
       }
     }
