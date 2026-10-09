@@ -410,6 +410,8 @@
 
     if (action === "voice") showToast("Voice input is not connected yet.");
 
+    if (action === "placeholder") showToast("Additional tools are not available yet.");
+
     if (action === "model") showToast("Gemini is the configured backend provider.");
 
     if (action === "settings") {
@@ -441,6 +443,12 @@
   });
 
   if (localStorage.getItem("friday_theme") === "light") document.body.classList.add("light");
+
+  // Keep the backend indicator accurate even before the user signs in.
+  void updateConnection();
+  window.setInterval(() => {
+    if (document.visibilityState !== "hidden") void updateConnection();
+  }, 30000);
 
   apiUrlInput.value = (FridayApi.getApiBase().replace(/\/api$/, "") || window.location.origin);
 
@@ -507,7 +515,7 @@
     runningCount.textContent=running.children.length===1 && running.firstElementChild?.classList.contains("activity-empty")?"0":String(running.children.length);
   };
 
-  const openTask=(title="Fix authentication bug",state="Running · GitHub API",progress=68,tool="GitHub API",log="08:13:21  task accepted\n08:13:24  planning execution\n08:13:31  GitHub API → repository\n08:13:38  modifying project files")=>{
+  const openTask=(title="Current Friday task",state="Live status",progress=0,tool="Friday agent",log="Live task details will appear here when available.")=>{
     taskTitle.textContent=title; taskSubtitle.textContent=state; taskTool.textContent=tool;
     taskProgress.style.width=Math.max(0,Math.min(100,progress))+"%"; taskProgressValue.textContent=Math.round(progress)+"%";
     taskFooter.textContent=state; taskLog.textContent=log;
@@ -556,9 +564,14 @@
     if(nav){
       document.querySelectorAll(".nav-item[data-nav]").forEach(n=>n.classList.toggle("active",n===nav));
       const label=(nav.querySelector("span:nth-child(2)")?.textContent||"Workspace");
-      if(nav.dataset.nav==="activity") setActivity(false);
-      else if(nav.dataset.nav==="tasks") setActivity(false);
-      else if(typeof showToast==="function") showToast(label+" workspace is ready for the next phase.");
+      if(nav.dataset.nav==="activity") {
+        setActivity(false);
+      } else if(nav.dataset.nav==="tasks") {
+        setActivity(false);
+        if(typeof showToast==="function") showToast("Live task status is shown in Friday Activity. Task history is not connected yet.");
+      } else if(typeof showToast==="function") {
+        showToast(label+" is not connected yet. Use Chat to run tasks with Friday.");
+      }
     }
   });
 
