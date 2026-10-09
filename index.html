@@ -77,13 +77,12 @@
       <div id="running-tasks" class="activity-list"></div>
     </section>
     <section class="activity-section">
-      <div class="activity-section-title"><span>WAITING</span><span class="activity-count">1</span></div>
-      <button class="activity-task waiting" data-task-view="approval"><span class="task-status-icon">◷</span><span class="task-copy"><strong>Deployment approval</strong><small>Waiting for your approval</small></span><span class="task-arrow">›</span></button>
+      <div class="activity-section-title"><span>WAITING</span><span class="activity-count">0</span></div>
+      <div class="activity-empty"><strong>No pending approvals</strong><small>Approvals will appear here when required.</small></div>
     </section>
     <section class="activity-section">
       <div class="activity-section-title"><span>RECENT</span></div>
-      <button class="activity-task completed" data-task-view="ci"><span class="task-status-icon">✓</span><span class="task-copy"><strong>CI failure fixed</strong><small>6/6 steps passed · 4m ago</small></span><span class="task-arrow">›</span></button>
-      <button class="activity-task failed" data-task-view="n8n"><span class="task-status-icon">!</span><span class="task-copy"><strong>Webhook connection</strong><small>Retry available · 18m ago</small></span><span class="task-arrow">›</span></button>
+      <div class="activity-empty"><strong>No recent tasks</strong><small>Completed and failed tasks will appear here when task history is connected.</small></div>
     </section>
   </div>
   <button class="activity-all" data-action="workspace-nav" data-nav="tasks">View all tasks <span>↗</span></button>
@@ -97,12 +96,9 @@
     <div class="task-progress-large"><div class="task-progress-track"><span id="task-progress-bar"></span></div><strong id="task-progress-value">68%</strong></div>
     <div class="task-view-grid">
       <section class="task-card"><div class="task-card-label">EXECUTION</div><div id="task-timeline" class="task-timeline">
-        <div class="timeline-step done"><span>✓</span><div><strong>Understand</strong><small>Request analyzed</small></div></div>
-        <div class="timeline-step done"><span>✓</span><div><strong>Plan</strong><small>Execution plan created</small></div></div>
-        <div class="timeline-step active"><span>●</span><div><strong>Modify</strong><small>Editing project files</small></div></div>
-        <div class="timeline-step"><span>○</span><div><strong>Test</strong><small>Waiting to run tests</small></div></div>
+        <div class="timeline-step active"><span>●</span><div><strong>Task status</strong><small>Live progress details are not available yet.</small></div></div>
       </div></section>
-      <section class="task-card"><div class="task-card-label">TOOLS & OUTPUT</div><div class="task-metadata"><div><span>Current tool</span><strong id="task-tool">GitHub API</strong></div><div><span>Files changed</span><strong>3</strong></div><div><span>Artifacts</span><strong>2</strong></div></div><div class="task-log" id="task-log">Ready for execution logs…</div></section>
+      <section class="task-card"><div class="task-card-label">TOOLS & OUTPUT</div><div class="task-metadata"><div><span>Current tool</span><strong id="task-tool">—</strong></div><div><span>Files changed</span><strong>—</strong></div><div><span>Artifacts</span><strong>—</strong></div></div><div class="task-log" id="task-log">Ready for execution logs…</div></section>
     </div>
     <footer class="task-view-footer"><span id="task-footer-state">Friday is working</span><button class="secondary-button" data-action="close-task-view">Close</button><button class="primary-button">Open result</button></footer>
   </div>
