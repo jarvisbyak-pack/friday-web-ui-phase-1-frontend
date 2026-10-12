@@ -263,6 +263,7 @@
       await refreshHistory();
       setTaskState("Completed", true);
       setStatus("Friday online", "online");
+      window.FridayVoiceSpeak?.(answer);
     } catch (error) {
       workingNode.classList.remove("working");
       workingNode.classList.add("error-message");
@@ -297,6 +298,8 @@
       }
     }
   };
+
+  window.FridayVoiceSend = handleSend;
 
   prompt.addEventListener("input", resize);
 
@@ -410,7 +413,7 @@
 
     if (action === "attach") fileInput.click();
 
-    if (action === "voice") showToast("Voice input is not connected yet.");
+    // Voice controls are handled by voice.js.
 
     if (action === "placeholder") showToast("Additional tools are not available yet.");
 
