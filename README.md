@@ -8,7 +8,7 @@ Friday is a web-based AI agent platform. This repository is the source of truth 
 - **Backend:** Express API with authentication, conversations, tasks, agent orchestration, files, GitHub tools, and SSE task events.
 - **Database:** PostgreSQL for persistent users, conversations, tasks, events, memory, sessions, and application state.
 - **Workers:** background task execution with persisted task state and stale-task recovery.
-- **AI:** provider abstraction currently configured for Gemini.
+- **AI:** provider abstraction currently configured for Gemini. The backend applies a server-owned Friday operating directive to every agent task, defining personality, tool-use discipline, verification, failure recovery, and safety boundaries.
 - **GitHub:** repository inspection and controlled mutations, with mutation flags disabled by default.
 - **Code execution:** controlled allowlist and disabled by default.
 - **Web access:** read-only fetching with SSRF protections.
