@@ -4,6 +4,7 @@ import { createDefaultToolRegistry } from "../tools/index.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import { TaskEventRepository } from "../tasks/task-events.js";
 import type { AgentRequest, AgentResult } from "./types.js";
+import { applyFridayDirective } from "./directive.js";
 
 const DEFAULT_MAX_STEPS = 8;
 
@@ -20,7 +21,7 @@ export class AgentService {
       throw new Error("maxSteps must be an integer between 1 and 20.");
     }
 
-    const messages: ChatMessage[] = [...request.messages];
+    const messages: ChatMessage[] = applyFridayDirective(request.messages);
     const toolCalls: ToolCall[] = [];
     const toolResults: ToolResult[] = [];
 
