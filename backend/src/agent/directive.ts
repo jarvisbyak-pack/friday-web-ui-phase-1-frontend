@@ -54,7 +54,6 @@ Make the user more effective by taking responsibility for authorized work, coord
 export interface DirectiveMessage {
   role: "system" | "user" | "assistant" | "tool";
   content: string;
-  [key: string]: unknown;
 }
 
 /**
